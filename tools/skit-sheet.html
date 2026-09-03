@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Skit contact sheet</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { padding: 18px; overflow: auto; }
+  .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cell { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #171a22; }
+  .cell h3 { margin: 0 0 6px; font: 600 15px system-ui; color: var(--gold); }
+  .cell .doc { margin: 0 0 8px; font: 13px system-ui; color: var(--ink-dim); min-height: 2.4em; }
+  .skit { width: 100%; }
+</style></head><body>
+<div class="sheet" id="sheet"></div>
+<script src="../skits.js"></script>
+<script>
+/* ?t=2500 freezes every scene at that moment (ms) in the 6s loop, keeping
+   each element's own delay intact — the way to judge one beat at a time. */
+fetch('../data/passages.json').then(r => r.json()).then(({ passages }) => {
+  document.getElementById('sheet').innerHTML = passages.map(p => `
+    <div class="cell">
+      <h3>${p.ref}</h3>
+      <p class="doc">${p.doctrine}</p>
+      <div class="skit">${window.SKITS[p.id] || '<em>none</em>'}</div>
+    </div>`).join('');
+  const t = new URLSearchParams(location.search).get('t');
+  if (t != null) requestAnimationFrame(() => {
+    document.getAnimations().forEach(a => { a.pause(); a.currentTime = +t; });
+    document.title = 'skits @ ' + t + 'ms';
+  });
+});
+</script></body></html>

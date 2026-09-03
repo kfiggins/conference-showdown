@@ -541,3 +541,81 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   STICK-FIGURE SKITS
+
+   Every beat runs on the same 6s loop so a scene stays in step;
+   `--d` offsets an element's phase within that loop. Positioning
+   lives on a wrapping <g> transform attribute, never here — a CSS
+   transform on an SVG element overrides its transform attribute.
+   ═══════════════════════════════════════════════════════════ */
+.skit { width: 94%; }
+.skit-sm { width: 52%; }
+.skit-svg { display: block; width: 100%; height: auto; color: var(--ink); }
+
+.skit-svg [class*="sk-"] { transform-box: fill-box; transform-origin: center; }
+.sk-glow { color: var(--gold); }
+
+.sk-bob      { animation: skBob 2.4s var(--d, 0s) ease-in-out infinite; }
+.sk-pulse    { animation: skPulse 2.2s var(--d, 0s) ease-in-out infinite; }
+.sk-glow     { animation: skGlow 3s var(--d, 0s) ease-in-out infinite; }
+.sk-swap-a   { animation: skSwapA 6s var(--d, 0s) cubic-bezier(.6,0,.4,1) infinite; }
+.sk-swap-b   { animation: skSwapB 6s var(--d, 0s) cubic-bezier(.6,0,.4,1) infinite; }
+.sk-flip     { animation: skFlip 6s var(--d, 0s) ease-in-out infinite; }
+.sk-rise-hold{ animation: skRiseHold 6s var(--d, 0s) cubic-bezier(.2,.8,.2,1) infinite; }
+.sk-in       { animation: skIn 6s var(--d, 0s) cubic-bezier(.2,.8,.2,1) infinite backwards; }
+.sk-straighten { animation: skStraighten 6s var(--d, 0s) cubic-bezier(.3,.7,.3,1) infinite;
+                 transform-origin: bottom center; }
+.sk-lift-away{ animation: skLiftAway 6s var(--d, 0s) cubic-bezier(.3,.7,.3,1) infinite; }
+.sk-slide-out{ animation: skSlideOut 6s var(--d, 0s) cubic-bezier(.3,.7,.3,1) infinite; }
+.sk-break-l  { animation: skBreakL 6s var(--d, 0s) cubic-bezier(.4,1.6,.5,1) infinite; }
+.sk-break-r  { animation: skBreakR 6s var(--d, 0s) cubic-bezier(.4,1.6,.5,1) infinite; }
+.sk-drop     { animation: skDrop 6s var(--d, 0s) cubic-bezier(.4,0,.7,1) infinite; }
+.sk-hand     { animation: skHand 6s var(--d, 0s) linear infinite;
+               transform-origin: bottom center; }
+.sk-blast    { animation: skBlast 6s var(--d, 0s) ease-out infinite;
+               transform-origin: left center; }
+.sk-approach { animation: skApproach 6s var(--d, 0s) linear infinite; }
+.sk-join-l   { animation: skJoinL 6s var(--d, 0s) cubic-bezier(.5,0,.3,1) infinite; }
+.sk-join-r   { animation: skJoinR 6s var(--d, 0s) cubic-bezier(.5,0,.3,1) infinite; }
+.sk-roll     { animation: skRoll 6s var(--d, 0s) cubic-bezier(.5,0,.6,1) infinite; }
+.sk-topple   { animation: skTopple 6s var(--d, 0s) cubic-bezier(.5,0,.8,1) infinite;
+               transform-origin: bottom center; }
+.sk-pane-l   { animation: skPaneL 6s var(--d, 0s) ease-in-out infinite;
+               transform-origin: left center; }
+.sk-pane-r   { animation: skPaneR 6s var(--d, 0s) ease-in-out infinite;
+               transform-origin: right center; }
+.sk-pour     { animation: skPour 6s var(--d, 0s) cubic-bezier(.4,0,.8,1) infinite backwards; }
+.sk-tithe    { animation: skTithe 6s var(--d, 0s) cubic-bezier(.4,0,.8,1) infinite; }
+.sk-reach-r  { animation: skReachR 3s var(--d, 0s) ease-in-out infinite; }
+.sk-reach-l  { animation: skReachL 3s var(--d, 0s) ease-in-out infinite; }
+
+@keyframes skBob     { 0%, 100% { transform: translateY(0); }   50% { transform: translateY(-4px); } }
+@keyframes skPulse   { 0%, 100% { transform: scale(1); }        50% { transform: scale(1.16); } }
+@keyframes skGlow    { 0%, 100% { opacity: .38; }               50% { opacity: 1; } }
+@keyframes skSwapA   { 0%, 8% { transform: translate(0, 0); } 23% { transform: translate(126px, -40px); } 38%, 58% { transform: translate(252px, 0); } 73% { transform: translate(126px, -40px); } 88%, 100% { transform: translate(0, 0); } }
+@keyframes skSwapB   { 0%, 8% { transform: translateX(0); } 38%, 58% { transform: translateX(-252px); } 88%, 100% { transform: translateX(0); } }
+@keyframes skFlip    { 0%, 10% { opacity: 0; } 22%, 50% { opacity: 1; } 64%, 100% { opacity: 0; } }
+@keyframes skRiseHold{ 0%, 10% { transform: translateY(34px); opacity: 0; } 36%, 88% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+@keyframes skIn      { 0% { opacity: 0; transform: scale(.5); } 9%, 76% { opacity: 1; transform: scale(1); } 92%, 100% { opacity: 0; transform: scale(.5); } }
+@keyframes skStraighten { 0%, 20% { transform: translateY(5px) rotate(-17deg); } 52%, 100% { transform: translateY(0) rotate(0); } }
+@keyframes skLiftAway{ 0% { opacity: 0; transform: translateY(0); } 6%, 20% { opacity: 1; transform: translateY(0); } 56%, 100% { opacity: 0; transform: translateY(-72px); } }
+@keyframes skSlideOut{ 0%, 14% { transform: translateX(0); opacity: 1; } 44%, 100% { transform: translateX(66px); opacity: .22; } }
+@keyframes skBreakL  { 0%, 42% { transform: translateX(0); } 64%, 100% { transform: translateX(-28px); } }
+@keyframes skBreakR  { 0%, 42% { transform: translateX(0); } 64%, 100% { transform: translateX(28px); } }
+@keyframes skDrop    { 0%, 16% { transform: translateY(0); opacity: 1; } 46%, 100% { transform: translateY(28px); opacity: .3; } }
+@keyframes skHand    { 0% { transform: rotate(0); } 100% { transform: rotate(-360deg); } }
+@keyframes skBlast   { 0% { opacity: 0; transform: scale(.4); } 18% { opacity: 1; transform: scale(1); } 58%, 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes skApproach{ 0% { transform: translateX(72px); opacity: 0; } 18% { opacity: 1; } 56%, 100% { transform: translateX(0); opacity: 1; } }
+@keyframes skJoinL   { 0%, 14% { transform: translateX(0); } 48%, 88% { transform: translateX(116px); } 100% { transform: translateX(0); } }
+@keyframes skJoinR   { 0%, 14% { transform: translateX(0); } 48%, 88% { transform: translateX(-116px); } 100% { transform: translateX(0); } }
+@keyframes skRoll    { 0%, 10% { transform: translateX(0) rotate(0); } 54%, 100% { transform: translateX(204px) rotate(540deg); } }
+@keyframes skTopple  { 0%, 52% { transform: rotate(0); } 76%, 100% { transform: rotate(76deg); } }
+@keyframes skPaneL   { 0%, 42% { transform: scaleX(1); } 64%, 100% { transform: scaleX(.06); } }
+@keyframes skPaneR   { 0%, 42% { transform: scaleX(1); } 64%, 100% { transform: scaleX(.06); } }
+@keyframes skPour    { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } 72% { transform: translateY(84px); opacity: 1; } 88%, 100% { transform: translateY(98px); opacity: 0; } }
+@keyframes skTithe   { 0%, 12% { transform: translateY(0); opacity: 1; } 42%, 100% { transform: translateY(28px); opacity: 0; } }
+@keyframes skReachR  { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(12px); } }
+@keyframes skReachL  { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-12px); } }

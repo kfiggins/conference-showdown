@@ -55,6 +55,36 @@ loop measured roughly half the true height and let four-option slides overflow. 
 fixed-layout-plus-transform approach measures once per candidate width and can't drift.
 `text-wrap: pretty` caused a related mismatch by re-wrapping after layout — leave it off.
 
+## Stick-figure skits
+
+`skits.js` holds one looping SVG scene per passage, keyed by passage id, composed from
+helpers at the top of the file (`fig`, `at`, `heart`, `book`, `cloud`, `beam`, `rays`,
+`temple`, `sack`, …) rather than drawn from scratch. Animation classes and keyframes live
+in styles.css under the skit heading; scenes compose those rather than defining their own.
+
+Four rules, all of which broke something first:
+
+- **Positioning and animation never share an element.** A CSS `transform` overrides an
+  SVG `transform` attribute, so `at(x, y, …)` wraps a `<g>` for placement and the
+  animation class goes on a `<g>` inside it.
+- **Every animation is a 6s loop**, so beats across a scene stay in step. Timing lives in
+  the keyframe percentages; `--d` shifts one element's phase (used for staggering).
+- **Keep everything inside the 400×220 viewBox at every moment of the loop, including
+  what moves.** `rays(n, r1, r2)` drawn at height `y` reaches `y - r2`, which is what
+  clipped the light off four scenes. Translations count too — check the extremes.
+- **Fill the frame.** A scene using only the middle of the viewBox renders small on a TV,
+  because the empty margin scales up with it. Aim for ink spanning x 40–360.
+
+Review changes with `tools/skit-sheet.html`, which renders all twelve at once.
+`?t=2500` pauses every scene at that moment in the loop — it sets `currentTime` on each
+animation, so per-element delays stay intact and one beat can be judged at a time. Check
+a few moments; a scene can read perfectly at one and be empty at another.
+
+Reverence, not a style choice: **the Saviour and Deity are never drawn as stick figures.**
+Isaiah 53 is staged as a burden lifted away, and where the Lord speaks it is light from
+above. Temples get a spire and finial — an earlier version drew a cross, which is wrong
+iconography here.
+
 ## Reading aloud
 
 `readAloud(text, id)` tries a recorded clip from `audio/` first (looked up in the

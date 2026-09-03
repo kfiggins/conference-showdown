@@ -67,6 +67,7 @@ Twenty ways to ask about the same passage, so the same 12 verses stay interestin
 | 🅱️ | Multiple choice: doctrine | Four doctrines, one right |
 | 🔢 | Put them in order | Four references into Old Testament order |
 | 😀 | Emoji clue | Names the passage from an emoji rebus |
+| 🎭 | Stick-figure skit | Watches a little animated scene act the passage out |
 | ✍️ | Finish the phrase | Completes the second half |
 | 🕵️ | Spot the imposter word | One word has been swapped — find it and fix it |
 | 🕊️ | Explain, share, testify | One student, one minute, up to 3 points |
@@ -127,6 +128,8 @@ here — no code changes.
 - `styles.css` — everything scales off `--u` (1vmin), so it fills any screen
 - `app.js` — round definitions, deck building, scoring, stats
 - `data/passages.json` — the passages
+- `skits.js` — the twelve animated stick-figure scenes
+- `tools/skit-sheet.html` — all twelve side by side, for reviewing them
 - `audio/` — optional recorded clips for the listening rounds (see AUDIO.md)
 - `tools/make-audio.mjs` — records those clips, or re-indexes ones you added
 

@@ -282,6 +282,25 @@ const ROUNDS = [
     })
   },
   {
+    id: 'skit', name: 'Stick-figure skit', icon: '🎭', color: '#ff9ecb',
+    build: p => {
+      const scene = window.SKITS?.[p.id];
+      if (!scene) return {                       // no scene drawn for this one yet
+        kicker: 'Name the passage from the clue',
+        stages: [`<div class="q-emoji">${p.emoji}</div>`, refCard(p)],
+        pts: 3, timer: 30
+      };
+      return {
+        kicker: 'What is this scene acting out?',
+        stages: [
+          `<div class="skit">${scene}</div>`,
+          `<div class="skit skit-sm">${scene}</div>${refCard(p)}`
+        ],
+        pts: 3, timer: 40
+      };
+    }
+  },
+  {
     id: 'finish-it', name: 'Finish the phrase', icon: '✍️', color: '#f0b429',
     build: p => {
       const w = words(p.keyPhrase);
