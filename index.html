@@ -59,6 +59,25 @@
           <span class="switch-track"><span class="switch-dot"></span></span>
           <span class="switch-text"><b>Sound</b><small>Dings, buzzes, and read-aloud rounds</small></span>
         </label>
+
+        <div class="voice-block" id="voiceField">
+          <div class="field">
+            <span class="field-label">Reading voice</span>
+            <div class="voice-row">
+              <select id="voicePick" aria-label="Reading voice"></select>
+              <button class="btn btn-sm" id="voiceTest">▶ Hear it</button>
+            </div>
+          </div>
+          <label class="field">
+            <span class="field-label">Reading speed</span>
+            <div class="stepper">
+              <button class="btn btn-step" data-rate="-0.05">&minus;</button>
+              <output id="rateOut">0.85&times;</output>
+              <button class="btn btn-step" data-rate="0.05">+</button>
+            </div>
+          </label>
+          <p class="panel-note" id="voiceNote"></p>
+        </div>
       </div>
 
       <!-- Round types -->

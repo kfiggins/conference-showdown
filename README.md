@@ -77,6 +77,13 @@ The last two are judged — pick 1, 2, or 3 points in the action bar before awar
 `?preview=all` walks one slide per round type if you want to see them before class.
 `?preview=<round-id>` shows just one.
 
+## The read-aloud rounds
+
+Pick the **Reading voice** on the start screen and press **Hear it** to compare — ★ marks
+the better ones. The stock Mac voices sound robotic; **[AUDIO.md](AUDIO.md)** covers the
+three ways to fix that, including recording a real voice (yours or a student's) into
+`audio/`, which the game will play instead.
+
 ## Adding or changing passages
 
 Everything the game asks comes out of `data/passages.json`. Each entry:
@@ -120,6 +127,8 @@ here — no code changes.
 - `styles.css` — everything scales off `--u` (1vmin), so it fills any screen
 - `app.js` — round definitions, deck building, scoring, stats
 - `data/passages.json` — the passages
+- `audio/` — optional recorded clips for the listening rounds (see AUDIO.md)
+- `tools/make-audio.mjs` — records those clips, or re-indexes ones you added
 
 Slide type auto-sizes: each slide is laid out at a fixed width and then scaled to fill the
 screen, so the longest passage and a three-word phrase both fill a 65" TV — and nothing

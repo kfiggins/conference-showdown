@@ -55,6 +55,21 @@ loop measured roughly half the true height and let four-option slides overflow. 
 fixed-layout-plus-transform approach measures once per candidate width and can't drift.
 `text-wrap: pretty` caused a related mismatch by re-wrapping after layout — leave it off.
 
+## Reading aloud
+
+`readAloud(text, id)` tries a recorded clip from `audio/` first (looked up in the
+`audio/index.json` manifest fetched at boot), and falls back to speech synthesis. A round
+opts in by returning `speak` (the text) and ideally `speakId` (the clip id) from `build`.
+
+Don't call `speechSynthesis.speak()` directly — go through `readAloud`, so recorded clips,
+the chosen voice, the reading speed, and `stopReading()` on slide change all keep working.
+`phrases()` splits text at sentence and clause boundaries and strips the characters
+synthesisers mishandle; it is pure, so it can be unit-tested straight out of app.js.
+
+Voice choice is a ranked preference (`VOICE_RANK`), not the browser's default, which is
+usually the worst available. Never pick by list order — Apple's compact voices come first
+in Chrome and sound the worst.
+
 ## Checking a layout change
 
 Beyond eyeballing it, assert it: temporarily loop every round type × passage × stage,
