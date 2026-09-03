@@ -592,42 +592,39 @@ function paintStage() {
     (d.double ? '⭐ DOUBLE POINTS · ' : '') + `${currentPts()} ${currentPts() === 1 ? 'point' : 'points'}`;
   renderActions();
   fitSlide();
-  requestAnimationFrame(fitSlide);   // catch any late reflow (fonts, wrapping)
+  requestAnimationFrame(fitSlide);   // re-measure once the frame has settled
 }
 
 /* Grow the type until the slide is full, shrink it if it overflows.
    Nothing is ever smaller than it has to be on a TV across the room. */
+/* Candidate layout widths, in px. A wide one suits a long passage; a narrow
+   one lets a three-word phrase wrap sooner and therefore scale up bigger. */
+const FIT_WIDTHS = [1600, 1350, 1100, 900, 760];
+const FIT_MAX = 2.6;
+
 function fitSlide() {
   const box = $('#slide'), inner = $('.slide-inner', box);
   if (!inner) return;
-  inner.style.fontSize = '';
-  const base = parseFloat(getComputedStyle(inner).fontSize);
-  if (!base) return;
-  const room = box.clientHeight - 10;
-  const wide = box.clientWidth;
-  const fits = f => {
-    inner.style.fontSize = (base * f) + 'px';
-    return inner.getBoundingClientRect().height <= room && inner.scrollWidth <= wide + 1;
-  };
-  const CAP = 2.6, FLOOR = 0.45;
-  let lo, hi;
-  if (fits(1)) {
-    if (fits(CAP)) return;                 // as big as we let it get
-    lo = 1; hi = CAP;
-  } else {
-    if (fits(FLOOR)) { lo = FLOOR; hi = 1; }
-    else return;                           // won't fit even at the floor
+  const bw = box.clientWidth, bh = box.clientHeight - 8;
+  if (bw <= 0 || bh <= 0) return;
+
+  // Try each width and keep whichever scales up the most. offsetHeight is the
+  // laid-out height and ignores the transform, so this needs no reset pass.
+  let best = null;
+  for (const w of FIT_WIDTHS) {
+    inner.style.width = w + 'px';
+    const h = inner.offsetHeight;
+    if (!h) continue;
+    const k = Math.min(bw / w, bh / h);
+    if (!best || k > best.k) best = { w, k };
   }
-  for (let i = 0; i < 9; i++) {
-    const mid = (lo + hi) / 2;
-    if (fits(mid)) lo = mid; else hi = mid;
-  }
-  fits(lo);
+  if (!best) return;
+  inner.style.width = best.w + 'px';
+  inner.style.transform =
+    `translate(-50%, -50%) scale(${Math.min(best.k * zoom, FIT_MAX).toFixed(4)})`;
 }
 
-if (document.fonts?.ready) document.fonts.ready.then(() => {
-  if ($('#screen-play').classList.contains('is-active')) fitSlide();
-});
+if (document.fonts?.ready) document.fonts.ready.then(() => fitSlide());
 
 let fitPending;
 addEventListener('resize', () => {
@@ -874,6 +871,7 @@ let zoom = 1;
 function setZoom(d) {
   zoom = Math.max(0.7, Math.min(1.6, zoom + d));
   document.documentElement.style.setProperty('--zoom', zoom.toFixed(2));
+  if ($('#screen-play').classList.contains('is-active')) fitSlide();
 }
 
 $('#startBtn').onclick = startGame;

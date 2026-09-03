@@ -34,15 +34,33 @@ Rules for `build`:
 
 ## Slide sizing
 
-Do **not** put absolute font sizes on slide content. `.slide-inner` carries one base
-`font-size` and `fitSlide()` binary-searches it between 0.45× and 2.6× until the slide
-fills the screen without overflowing. Anything inside a slide must be sized in `em`.
+A slide is laid out at a **fixed virtual width** with **fixed 16px-based font sizes**, then
+scaled to fill the window with a CSS transform — the way a slide deck does it. `fitSlide()`
+tries each width in `FIT_WIDTHS`, keeps whichever yields the largest scale, and applies
+`translate(-50%,-50%) scale(k)`. A wide virtual width suits a long passage; a narrow one
+lets a short phrase wrap sooner and therefore scale up bigger.
 
-Two things that broke this before, so don't reintroduce them:
+Rules that follow from that:
 
-- `text-wrap: pretty` re-wraps after layout, so measurements disagree with what paints.
-- Measuring before the action bar renders overstates the available room. `fitSlide()`
-  runs last in `paintStage()` for that reason.
+- Size slide content in `em` (of the 16px base) or `%` of the virtual width. Never `vmin`,
+  `vw`, or `vh` — the scale, not the viewport, decides how big it ends up.
+- Never animate `transform` on `.slide-inner`; `fitSlide()` owns that property. The entry
+  animation is opacity-only for this reason.
+- Measure with `offsetHeight`, which is the laid-out height and ignores the transform.
+
+An earlier version scaled by mutating `font-size` and re-measuring in a loop. Don't go
+back to that: changing a font-size (or a custom property feeding one) and synchronously
+reading a descendant's geometry does not reliably reflect the new `em` cascade, so the
+loop measured roughly half the true height and let four-option slides overflow. The
+fixed-layout-plus-transform approach measures once per candidate width and can't drift.
+`text-wrap: pretty` caused a related mismatch by re-wrapping after layout — leave it off.
+
+## Checking a layout change
+
+Beyond eyeballing it, assert it: temporarily loop every round type × passage × stage,
+call `fitSlide()`, and compare `.slide-inner`'s transformed `getBoundingClientRect()`
+against `#slide`'s. It should never exceed it. Run that at 1280x720, 1440x900, 1920x1080,
+and 2560x1440 — 580 slides per size, and all four must come back clean.
 
 ## Checking a change
 

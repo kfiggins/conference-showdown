@@ -121,5 +121,6 @@ here — no code changes.
 - `app.js` — round definitions, deck building, scoring, stats
 - `data/passages.json` — the passages
 
-Slide type auto-sizes: `fitSlide()` grows the text until the slide is full and shrinks it
-if it would overflow, so the longest passage and a three-word phrase both fill a 65" TV.
+Slide type auto-sizes: each slide is laid out at a fixed width and then scaled to fill the
+screen, so the longest passage and a three-word phrase both fill a 65" TV — and nothing
+gets cut off in full screen, whatever the display's shape.
