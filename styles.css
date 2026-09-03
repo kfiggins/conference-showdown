@@ -367,7 +367,21 @@ kbd {
   color: transparent;
 }
 .blank.is-shown { color: var(--gold); border-color: transparent; }
-.fade-word { opacity: .14; }
+/* Unrevealed words in the one-word-at-a-time round. They keep their real
+   width so the phrase never reflows or rescales as words appear, but the
+   letters themselves are gone — only a redaction bar is left. */
+.hidden-word {
+  color: transparent;
+  background-image: linear-gradient(
+    transparent 43%,
+    color-mix(in srgb, var(--ink) 26%, transparent) 43%,
+    color-mix(in srgb, var(--ink) 26%, transparent) 57%,
+    transparent 57%);
+  background-size: calc(100% - .16em) 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.hidden-word::selection { color: transparent; }
 .hi { color: var(--gold); }
 .strike { text-decoration: line-through; text-decoration-thickness: .07em; color: var(--ink-faint); }
 

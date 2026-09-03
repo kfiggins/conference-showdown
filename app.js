@@ -142,12 +142,15 @@ const ROUNDS = [
       const w = words(p.keyPhrase);
       const stages = w.map((_, i) =>
         `<p class="q-main">${w.map((word, j) =>
-          `<span class="${j <= i ? '' : 'fade-word'}">${esc(word)}</span>`).join(' ')}</p>`);
+          j <= i ? esc(word) : `<span class="hidden-word">${esc(word)}</span>`).join(' ')}</p>`);
       stages.push(refCard(p));
       return {
         kicker: 'Buzz in as soon as you know it — fewer words, more points',
         stages,
-        ptsAt: st => Math.max(1, Math.min(5, w.length - st)),
+        // Slides from 5 points down to 1 across the reveal, whatever the
+        // phrase length — otherwise a long phrase stays at 5 for most of it
+        // and "fewer words, more points" isn't true.
+        ptsAt: st => Math.max(1, Math.ceil(5 * (1 - st / Math.max(1, w.length - 1)))),
         timer: 0
       };
     }
@@ -1103,7 +1106,12 @@ function maybePreview() {
   S.history = [];
   S.opts.sound = false;
   show('play'); renderScorebar(); renderSlide();
-  if (q.get('stage') === 'last') { S.stage = S.deck[S.idx].built.stages.length - 1; paintStage(); }
+  const st = q.get('stage');
+  if (st != null) {
+    const n = S.deck[S.idx].built.stages.length;
+    S.stage = st === 'last' ? n - 1 : Math.min(n - 1, Math.max(0, +st || 0));
+    paintStage();
+  }
   return true;
 }
 
