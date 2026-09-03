@@ -1,0 +1,307 @@
+{
+  "set": "Old Testament — 2nd Half",
+  "year": "Doctrinal Mastery",
+  "passages": [
+    {
+      "id": "isa-5-20",
+      "ref": "Isaiah 5:20",
+      "book": "Isaiah",
+      "order": 1,
+      "doctrine": "Woe unto them that call evil good, and good evil.",
+      "keyPhrase": "Woe unto them that call evil good, and good evil",
+      "cloze": "Woe unto them that call [evil] good, and [good] [evil]",
+      "scramble": "call evil good and good evil",
+      "emoji": "😈👍 · 😇👎 · 🌑💡",
+      "context": "Isaiah pronounces a woe on a people who have flipped right and wrong upside down — darkness for light, bitter for sweet.",
+      "scenarios": [
+        "A trend online treats something the Lord calls sin as brave, and something He calls good as old-fashioned. Which passage names that exact switch?",
+        "A friend tells you, “There's no real right or wrong anymore — just whatever works for you.”"
+      ],
+      "trueFalse": [
+        { "s": "Isaiah warns against putting darkness for light and bitter for sweet.", "a": true },
+        { "s": "Isaiah teaches that what counts as good and evil changes with the times.", "a": false }
+      ],
+      "apply": "Name one place the world is calling evil good right now. How do you stay clear-eyed about it without being unkind to people?",
+      "verses": [
+        { "v": 20, "text": "Woe unto them that call evil good, and good evil; that put darkness for light, and light for darkness; that put bitter for sweet, and sweet for bitter!" }
+      ]
+    },
+    {
+      "id": "isa-29-13",
+      "ref": "Isaiah 29:13–14",
+      "book": "Isaiah",
+      "order": 2,
+      "doctrine": "The Restoration of the gospel is “a marvellous work and a wonder.”",
+      "keyPhrase": "A marvellous work and a wonder",
+      "cloze": "I will proceed to do a [marvellous] [work] among this people, even a marvellous work and a [wonder]",
+      "scramble": "a marvellous work and a wonder",
+      "emoji": "👄🙏 · 💔 · ➡️ · 📖✨🌎",
+      "context": "Centuries before the First Vision, Isaiah saw both the apostasy — worship taught “by the precept of men” — and the Restoration that would answer it.",
+      "scenarios": [
+        "Someone asks why a Restoration was even needed if the Bible was already here.",
+        "A friend says church feels like people going through the motions. Which passage describes drawing near with the mouth but not the heart?"
+      ],
+      "trueFalse": [
+        { "s": "Isaiah said the people honoured God with their lips but had removed their hearts far from Him.", "a": true },
+        { "s": "The “marvellous work and a wonder” refers to the building of Solomon's temple.", "a": false }
+      ],
+      "apply": "Is there anything you do with your lips but not your heart? What is one thing that would change it?",
+      "verses": [
+        { "v": 13, "text": "Wherefore the Lord said, Forasmuch as this people draw near me with their mouth, and with their lips do honour me, but have removed their heart far from me, and their fear toward me is taught by the precept of men:" },
+        { "v": 14, "text": "Therefore, behold, I will proceed to do a marvellous work among this people, even a marvellous work and a wonder: for the wisdom of their wise men shall perish, and the understanding of their prudent men shall be hid." }
+      ]
+    },
+    {
+      "id": "isa-53-3",
+      "ref": "Isaiah 53:3–5",
+      "book": "Isaiah",
+      "order": 3,
+      "doctrine": "Surely Christ hath borne our griefs and carried our sorrows.",
+      "keyPhrase": "Surely he hath borne our griefs, and carried our sorrows",
+      "cloze": "Surely he hath borne our [griefs], and carried our [sorrows] ... and with his [stripes] we are [healed]",
+      "scramble": "borne our griefs and carried our sorrows",
+      "emoji": "😢 · ✝️ · 🩹 · 💙",
+      "context": "Isaiah's suffering-servant prophecy — written roughly 700 years before Gethsemane and Calvary.",
+      "scenarios": [
+        "A friend feels like nobody on earth understands what she is carrying.",
+        "Someone asks whether Jesus really knows what it feels like to be rejected."
+      ],
+      "trueFalse": [
+        { "s": "“With his stripes we are healed” teaches that the Savior's suffering can heal us.", "a": true },
+        { "s": "Isaiah says the Savior was esteemed and honoured by the men of His day.", "a": false }
+      ],
+      "apply": "What grief or sorrow could you actually hand to the Savior this week — and what would handing it over look like?",
+      "verses": [
+        { "v": 3, "text": "He is despised and rejected of men; a man of sorrows, and acquainted with grief: and we hid as it were our faces from him; he was despised, and we esteemed him not." },
+        { "v": 4, "text": "Surely he hath borne our griefs, and carried our sorrows: yet we did esteem him stricken, smitten of God, and afflicted." },
+        { "v": 5, "text": "But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed." }
+      ]
+    },
+    {
+      "id": "isa-58-6",
+      "ref": "Isaiah 58:6–7",
+      "book": "Isaiah",
+      "order": 4,
+      "doctrine": "The blessings of a fast.",
+      "keyPhrase": "To loose the bands of wickedness, and to let the oppressed go free",
+      "cloze": "Is not this the [fast] that I have chosen? to loose the bands of [wickedness] ... and to let the [oppressed] go free",
+      "scramble": "let the oppressed go free",
+      "emoji": "🍽️🚫 · 🍞🤝 · ⛓️💥",
+      "context": "The Lord teaches Israel what fasting is actually for — and it has as much to do with the hungry as with the empty stomach.",
+      "scenarios": [
+        "Fast Sunday has started to feel like just skipping breakfast. Which passage says what it is supposed to be?",
+        "Your ward is collecting for people who don't have enough to eat."
+      ],
+      "trueFalse": [
+        { "s": "Isaiah teaches that a true fast includes dealing your bread to the hungry.", "a": true },
+        { "s": "Isaiah teaches that fasting is only about going without food.", "a": false }
+      ],
+      "apply": "Who could your next fast be *for*? Name the person or the need.",
+      "verses": [
+        { "v": 6, "text": "Is not this the fast that I have chosen? to loose the bands of wickedness, to undo the heavy burdens, and to let the oppressed go free, and that ye break every yoke?" },
+        { "v": 7, "text": "Is it not to deal thy bread to the hungry, and that thou bring the poor that are cast out to thy house? when thou seest the naked, that thou cover him; and that thou hide not thyself from thine own flesh?" }
+      ]
+    },
+    {
+      "id": "isa-58-13",
+      "ref": "Isaiah 58:13–14",
+      "book": "Isaiah",
+      "order": 5,
+      "doctrine": "“Turn away from doing thy pleasure on my holy day; and call the sabbath a delight.”",
+      "keyPhrase": "Call the sabbath a delight",
+      "cloze": "If thou turn away thy foot from the [sabbath], from doing thy [pleasure] on my holy day; and call the sabbath a [delight]",
+      "scramble": "call the sabbath a delight",
+      "emoji": "📅7️⃣ · 🚫🛍️ · 😊🙏",
+      "context": "Same sermon as the fast. The Lord names what the Sabbath is for, and what He promises those who honour it.",
+      "scenarios": [
+        "Your team schedules the tournament on a Sunday and everyone else is going.",
+        "A friend says Sunday rules just feel like a list of things you can't do."
+      ],
+      "trueFalse": [
+        { "s": "The Lord asks us to call the Sabbath a delight.", "a": true },
+        { "s": "Isaiah says the Sabbath is the right day to do our own pleasure and speak our own words.", "a": false }
+      ],
+      "apply": "What is one thing you could *add* to Sunday — not just stop doing — that would make it a delight?",
+      "verses": [
+        { "v": 13, "text": "If thou turn away thy foot from the sabbath, from doing thy pleasure on my holy day; and call the sabbath a delight, the holy of the Lord, honourable; and shalt honour him, not doing thine own ways, nor finding thine own pleasure, nor speaking thine own words:" },
+        { "v": 14, "text": "Then shalt thou delight thyself in the Lord; and I will cause thee to ride upon the high places of the earth, and feed thee with the heritage of Jacob thy father: for the mouth of the Lord hath spoken it." }
+      ]
+    },
+    {
+      "id": "jer-1-4",
+      "ref": "Jeremiah 1:4–5",
+      "book": "Jeremiah",
+      "order": 6,
+      "doctrine": "“Before I formed thee in the belly … I knew thee.”",
+      "keyPhrase": "Before I formed thee in the belly I knew thee",
+      "cloze": "[Before] I formed thee in the belly I [knew] thee; and before thou camest forth out of the womb I [sanctified] thee",
+      "scramble": "before I formed thee I knew thee",
+      "emoji": "🕰️ · 👶 · 👁️❤️ · 📜",
+      "context": "The Lord calls Jeremiah, who protests that he is only a child. God's answer: I knew you before you got here.",
+      "scenarios": [
+        "Someone wonders whether their life actually has a purpose, or whether they just showed up.",
+        "A friend says they're too young for God to have anything real for them to do."
+      ],
+      "trueFalse": [
+        { "s": "God knew and sanctified Jeremiah before he was born.", "a": true },
+        { "s": "Jeremiah was called as a prophet only after a long life of proving himself.", "a": false }
+      ],
+      "apply": "If God knew you before you were born, what does that say about your worth on your worst day?",
+      "verses": [
+        { "v": 4, "text": "Then the word of the Lord came unto me, saying," },
+        { "v": 5, "text": "Before I formed thee in the belly I knew thee; and before thou camest forth out of the womb I sanctified thee, and I ordained thee a prophet unto the nations." }
+      ]
+    },
+    {
+      "id": "ezek-3-16",
+      "ref": "Ezekiel 3:16–17",
+      "book": "Ezekiel",
+      "order": 7,
+      "doctrine": "The prophet is “a watchman unto the house of Israel.”",
+      "keyPhrase": "I have made thee a watchman unto the house of Israel",
+      "cloze": "Son of man, I have made thee a [watchman] unto the house of [Israel] ... and give them [warning] from me",
+      "scramble": "a watchman unto the house of Israel",
+      "emoji": "🗼 · 👀 · 📢 · 🐑",
+      "context": "The Lord posts Ezekiel on the wall. A watchman's whole job is to see what's coming and shout.",
+      "scenarios": [
+        "A prophet counsels something unpopular and your friends think it's outdated. Why listen anyway?",
+        "Someone asks what a prophet is actually *for*."
+      ],
+      "trueFalse": [
+        { "s": "A watchman's assignment is to warn the people of danger he can see coming.", "a": true },
+        { "s": "Ezekiel was told to keep the Lord's warnings to himself.", "a": false }
+      ],
+      "apply": "What warning from a living prophet have you been slow to act on? What's the first step?",
+      "verses": [
+        { "v": 16, "text": "And it came to pass at the end of seven days, that the word of the Lord came unto me, saying," },
+        { "v": 17, "text": "Son of man, I have made thee a watchman unto the house of Israel: therefore hear the word at my mouth, and give them warning from me." }
+      ]
+    },
+    {
+      "id": "ezek-37-15",
+      "ref": "Ezekiel 37:15–17",
+      "book": "Ezekiel",
+      "order": 8,
+      "doctrine": "The Bible and the Book of Mormon “shall become one.”",
+      "keyPhrase": "They shall become one in thine hand",
+      "cloze": "Take thee one [stick], and write upon it, For [Judah] ... then take another stick ... For [Joseph] ... and they shall become [one] in thine hand",
+      "scramble": "they shall become one",
+      "emoji": "📖 ➕ 📘 · 🤝 · 1️⃣✋",
+      "context": "Two written records — Judah's and Joseph's — joined into one testimony in the Lord's hand.",
+      "scenarios": [
+        "A friend asks why Latter-day Saints need the Book of Mormon if they already have the Bible.",
+        "Someone claims the Book of Mormon competes with the Bible."
+      ],
+      "trueFalse": [
+        { "s": "The stick of Judah and the stick of Joseph become one in the Lord's hand.", "a": true },
+        { "s": "Ezekiel's two sticks represent two rival churches.", "a": false }
+      ],
+      "apply": "Where have the Bible and the Book of Mormon taught you the same truth twice? Why does hearing it twice matter?",
+      "verses": [
+        { "v": 15, "text": "The word of the Lord came again unto me, saying," },
+        { "v": 16, "text": "Moreover, thou son of man, take thee one stick, and write upon it, For Judah, and for the children of Israel his companions: then take another stick, and write upon it, For Joseph, the stick of Ephraim, and for all the house of Israel his companions:" },
+        { "v": 17, "text": "And join them one to another into one stick; and they shall become one in thine hand." }
+      ]
+    },
+    {
+      "id": "dan-2-44",
+      "ref": "Daniel 2:44–45",
+      "book": "Daniel",
+      "order": 9,
+      "doctrine": "God shall “set up a kingdom, which shall never be destroyed.”",
+      "keyPhrase": "A kingdom, which shall never be destroyed",
+      "cloze": "The God of heaven shall set up a [kingdom], which shall never be [destroyed] ... the [stone] was cut out of the mountain without [hands]",
+      "scramble": "a kingdom which shall never be destroyed",
+      "emoji": "🗿⛰️ · 💥🏛️ · 👑♾️",
+      "context": "Daniel interprets Nebuchadnezzar's dream: a stone cut from the mountain without hands rolls forth and breaks every kingdom of men.",
+      "scenarios": [
+        "Someone says the Church is shrinking and will fade out like every other movement in history.",
+        "A friend asks what the “stone cut without hands” has to do with them."
+      ],
+      "trueFalse": [
+        { "s": "The kingdom the God of heaven sets up shall never be destroyed.", "a": true },
+        { "s": "The stone was cut out of the mountain by the hands of kings.", "a": false }
+      ],
+      "apply": "What changes for you today, knowing you belong to a kingdom that will never be destroyed?",
+      "verses": [
+        { "v": 44, "text": "And in the days of these kings shall the God of heaven set up a kingdom, which shall never be destroyed: and the kingdom shall not be left to other people, but it shall break in pieces and consume all these kingdoms, and it shall stand for ever." },
+        { "v": 45, "text": "Forasmuch as thou sawest that the stone was cut out of the mountain without hands, and that it brake in pieces the iron, the brass, the clay, the silver, and the gold; the great God hath made known to the king what shall come to pass hereafter: and the dream is certain, and the interpretation thereof sure." }
+      ]
+    },
+    {
+      "id": "amos-3-7",
+      "ref": "Amos 3:7",
+      "book": "Amos",
+      "order": 10,
+      "doctrine": "“The Lord God revealeth his secret unto the prophets.”",
+      "keyPhrase": "He revealeth his secret unto his servants the prophets",
+      "cloze": "Surely the Lord God will do [nothing], but he [revealeth] his secret unto his servants the [prophets]",
+      "scramble": "he revealeth his secret unto the prophets",
+      "emoji": "🤫 · 🗣️ · ➡️ · 👴📢",
+      "context": "One verse, one pattern that holds through all of scripture: the Lord tells His prophets first.",
+      "scenarios": [
+        "A friend asks why we need living prophets when we already have the scriptures.",
+        "Someone wonders how the Church decides what to do about a brand-new question the scriptures never mention."
+      ],
+      "trueFalse": [
+        { "s": "The Lord reveals His secret unto His servants the prophets.", "a": true },
+        { "s": "Amos taught that the Lord acts without telling anyone first.", "a": false }
+      ],
+      "apply": "What has a living prophet said recently that you would actually hand to a friend? Say it in your own words.",
+      "verses": [
+        { "v": 7, "text": "Surely the Lord God will do nothing, but he revealeth his secret unto his servants the prophets." }
+      ]
+    },
+    {
+      "id": "mal-3-8",
+      "ref": "Malachi 3:8–10",
+      "book": "Malachi",
+      "order": 11,
+      "doctrine": "The blessings of paying tithing.",
+      "keyPhrase": "Prove me now herewith, and I will open you the windows of heaven",
+      "cloze": "Bring ye all the [tithes] into the [storehouse] ... and [prove] me now herewith ... if I will not open you the [windows] of heaven",
+      "scramble": "open you the windows of heaven",
+      "emoji": "💰🔟 · 🏛️ · 🪟☁️ · 🎁",
+      "context": "Malachi's last call to a people who had quietly stopped paying tithes and offerings — with an invitation to test the Lord on it.",
+      "scenarios": [
+        "You get your first real paycheck and money is already tight.",
+        "A friend says tithing is just the Church asking for money."
+      ],
+      "trueFalse": [
+        { "s": "The Lord invites us to “prove me now herewith” by paying tithing.", "a": true },
+        { "s": "The windows of heaven are promised only to those who are already wealthy.", "a": false }
+      ],
+      "apply": "What is your actual plan for the first ten percent of your next paycheck?",
+      "verses": [
+        { "v": 8, "text": "Will a man rob God? Yet ye have robbed me. But ye say, Wherein have we robbed thee? In tithes and offerings." },
+        { "v": 9, "text": "Ye are cursed with a curse: for ye have robbed me, even this whole nation." },
+        { "v": 10, "text": "Bring ye all the tithes into the storehouse, that there may be meat in mine house, and prove me now herewith, saith the Lord of hosts, if I will not open you the windows of heaven, and pour you out a blessing, that there shall not be room enough to receive it." }
+      ]
+    },
+    {
+      "id": "mal-4-5",
+      "ref": "Malachi 4:5–6",
+      "book": "Malachi",
+      "order": 12,
+      "doctrine": "Elijah to turn the heart of the children to their fathers.",
+      "keyPhrase": "He shall turn the heart of the fathers to the children",
+      "cloze": "I will send you [Elijah] the prophet ... and he shall turn the [heart] of the fathers to the [children], and the heart of the children to their [fathers]",
+      "scramble": "turn the heart of the fathers to the children",
+      "emoji": "👴⚡ · 🔑 · 👨‍👩‍👧‍👦 · 🏛️",
+      "context": "The last words of the Old Testament — a promise kept in the Kirtland Temple on 3 April 1836, when Elijah returned and restored the sealing keys.",
+      "scenarios": [
+        "Family history sounds like a hobby for grandparents. Why is it a commandment?",
+        "A friend asks what temples have to do with people who already died."
+      ],
+      "trueFalse": [
+        { "s": "Elijah was sent to turn the hearts of the children to their fathers.", "a": true },
+        { "s": "Malachi promises Elijah will come *after* the great and dreadful day of the Lord.", "a": false }
+      ],
+      "apply": "Name one ancestor you could learn about this week — or one temple ordinance you could help with.",
+      "verses": [
+        { "v": 5, "text": "Behold, I will send you Elijah the prophet before the coming of the great and dreadful day of the Lord:" },
+        { "v": 6, "text": "And he shall turn the heart of the fathers to the children, and the heart of the children to their fathers, lest I come and smite the earth with a curse." }
+      ]
+    }
+  ]
+}
