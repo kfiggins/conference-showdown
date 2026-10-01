@@ -15,7 +15,7 @@ const pick = a => a[rand(a.length)];
 const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = rand(i + 1); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 const words = s => s.split(/\s+/).filter(Boolean);
 
-const PALETTE = ['#f0b429', '#4a9be0', '#6dc86d', '#b07be0', '#e0575b', '#3fbfb0'];
+const PALETTE = ['#FF6B4A', '#5AB0FF', '#5FD38D', '#B28DFF', '#FFC93C', '#2EC4B6'];
 
 const NAME_IDEAS = [
   'The Watchmen', 'Stonecutters', 'Two Sticks', 'Sabbath Delight',
@@ -915,15 +915,12 @@ function drawWave(now) {
     waveHeights[i] += (target - waveHeights[i]) * k;
   }
 
-  const color = getComputedStyle(cv).getPropertyValue('--gold').trim() || '#f0b429';
+  const color = getComputedStyle(cv).color || '#121212';      // ink, set in CSS
   const slot = W / BARS, bw = Math.max(2, slot * 0.56), mid = H / 2;
-  const grad = g.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, color); grad.addColorStop(0.5, '#ffffff'); grad.addColorStop(1, color);
+
   const active = !src.idle;
-  g.globalAlpha = active ? 1 : 0.45;
-  g.fillStyle = grad;
-  g.shadowColor = color;
-  g.shadowBlur = active ? H * 0.06 : 0;
+  g.globalAlpha = active ? 1 : 0.3;
+  g.fillStyle = color;
   for (let i = 0; i < BARS; i++) {
     const h = Math.max(bw, waveHeights[i] * (H * 0.92));
     const x = i * slot + (slot - bw) / 2;
@@ -1250,8 +1247,7 @@ function renderSlide() {
   S.stage = 0; S.slideAwards = d.awards.map(a => a.team);
 
   const play = $('#screen-play');
-  play.style.setProperty('--gold', r.color);
-  play.style.setProperty('--gold-soft', r.color);
+  play.style.setProperty('--round', r.color);   // the whole play screen takes the round's colour
 
   $('#roundBadge').textContent = `${r.icon} ${r.name}`;
   $('#progress').textContent = `${S.idx + 1} / ${S.deck.length}`;
