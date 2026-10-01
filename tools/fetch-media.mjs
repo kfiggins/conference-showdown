@@ -14,11 +14,19 @@
  * (an HTTP Range request) and trims the start to an MP3 frame boundary.
  * A whole talk is never downloaded.
  *
+ * It also measures each excerpt's loudness 20 times a second and writes
+ * data/envelopes.json — just numbers, no audio — which IS committed. The
+ * online version can't analyse the Church's streamed audio (no CORS), so
+ * its waveform plays these numbers back in time with the stream instead.
+ * Measuring needs macOS's built-in `afconvert`; elsewhere it's skipped.
+ *
  *   node tools/fetch-media.mjs           fetch what's missing
  *   node tools/fetch-media.mjs --force   fetch everything again
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -141,5 +149,39 @@ for (const t of conf.talks) {
 }
 
 writeFileSync(join(MEDIA, 'index.json'), JSON.stringify(index, null, 2) + '\n');
+
+/* ── loudness envelopes ────────────────────────────────── */
+const ENV_RATE = 20;                       // values per second
+function envelope(mp3) {
+  const wav = join(tmpdir(), `cs-env-${process.pid}.wav`);
+  try {
+    execFileSync('afconvert', ['-f', 'WAVE', '-d', 'LEI16@8000', '-c', '1', mp3, wav], { stdio: 'ignore' });
+    const b = readFileSync(wav);
+    let i = 12;                            // find the 'data' chunk
+    while (i < b.length - 8 && b.toString('ascii', i, i + 4) !== 'data') i += 8 + b.readUInt32LE(i + 4);
+    const pcm = new Int16Array(b.buffer.slice(b.byteOffset + i + 8, b.byteOffset + b.length - ((b.length - i - 8) % 2)));
+    const win = 8000 / ENV_RATE, rms = [];
+    for (let s = 0; s + win <= pcm.length; s += win) {
+      let sum = 0;
+      for (let k = s; k < s + win; k++) sum += pcm[k] * pcm[k];
+      rms.push(Math.sqrt(sum / win));
+    }
+    // Scale so the 95th-percentile loudness reads as full height.
+    const top = [...rms].sort((a, b) => a - b)[Math.floor(rms.length * 0.95)] || 1;
+    return rms.map(v => Math.min(99, Math.round(v / top * 99)));
+  } finally { rmSync(wav, { force: true }); }
+}
+
+let envelopes = null;
+try { execFileSync('which', ['afconvert'], { stdio: 'ignore' }); envelopes = {}; }
+catch { console.log('\nSkipping loudness envelopes: afconvert (macOS) not found.'); }
+if (envelopes) {
+  for (const files of Object.values(index.clips)) {
+    for (const f of files) envelopes[f.replace(/\.mp3$/, '')] = envelope(join(MEDIA, 'audio', f));
+  }
+  writeFileSync(join(ROOT, 'data', 'envelopes.json'),
+    '{\n' + Object.entries(envelopes).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n') + '\n}\n');
+  console.log(`\ndata/envelopes.json — loudness for ${Object.keys(envelopes).length} excerpts (commit this one)`);
+}
 console.log(`\nmedia/index.json — ${Object.keys(index.portraits).length} portraits, ` +
             `${Object.keys(index.clips).length} talks${problems ? `, ${problems} problem(s) above` : ''}`);

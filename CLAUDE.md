@@ -44,6 +44,19 @@ Range requests — it reads the MP3 header for the bitrate and trims to a frame 
 ffmpeg and no whole-talk downloads. Excerpts play from the start in a plain `<audio>`; nothing
 seeks, so the stock Python server (no Range support) is fine.
 
+The listening rounds show a canvas waveform driven by `data/envelopes.json`: each excerpt's
+loudness, 20 values a second, measured by `fetch-media.mjs` with macOS `afconvert` and committed
+(numbers only, no audio). It's played back against `clip.currentTime`, so it follows the real
+speech both locally and when streamed. **Do not switch it to a Web Audio analyser.** The Church's
+server sends no CORS headers, so an analyser can't read streamed audio; and routing local playback
+through an AudioContext stalled it at 0:00 in a real-Chrome test, a silent clip in class. Keep
+playback a plain `<audio>` element.
+
+Testing audio needs real, headed Chrome. Headless Chrome never advances media time, and in
+`--headless=new` timers and `fetch` don't run either. Launch headed Chrome with a throwaway
+`--user-data-dir`, mute the clip, and have the page report results by requesting a URL the local
+server logs.
+
 Portrait `<img>`s have fixed CSS sizes. An image that sized itself on load would change the
 slide's height after `fitSlide()` measured it.
 

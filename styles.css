@@ -646,3 +646,9 @@ kbd {
 .tiles-small { max-width: 96%; }
 .tiles-small .tile { font-size: 2.2em; }
 .q-quote { font-style: italic; max-width: 80%; }
+
+/* Listening rounds: the waveform. A fixed size in em, like every slide
+   element, so fitSlide() can measure it before anything draws. */
+.wave { display: block; width: 62em; height: 15em; color: var(--gold); }
+.wave-hint { transition: opacity .4s ease; }
+.slide-inner.is-listening .wave-hint { opacity: .35; }

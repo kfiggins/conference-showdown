@@ -70,6 +70,10 @@ const NEAR_MISS = {
   loose: 'break', fast: 'feast', open: 'part', work: 'wonder', body: 'house'
 };
 
+/* The listening rounds show a live waveform instead of an icon (see WAVEFORM below). */
+const WAVE_HTML = `<canvas class="wave" data-wave aria-hidden="true"></canvas>` +
+  `<p class="q-sub wave-hint">Press <kbd>R</kbd> to hear it again</p>`;
+
 const verseHTML = p => p.verses
   .map(v => `<span class="v-num">${v.v}</span>${esc(v.text)}`).join(' ');
 
@@ -188,7 +192,7 @@ const ROUNDS = [
     id: 'listen-verse', name: 'Listen: the verse', icon: '🔊', color: '#8fd694',
     build: p => ({
       kicker: 'Eyes closed. Listen, then name the reference.',
-      stages: [`<div class="speaker">🔊</div><p class="q-sub">Press <kbd>R</kbd> to hear it again</p>`,
+      stages: [WAVE_HTML,
         `<p class="q-ref">${esc(p.ref)}</p><p class="q-verse ${verseSizeClass(p)}">${verseHTML(p)}</p>`],
       speak: p.verses.map(v => v.text).join(' '), speakId: p.id,
       pts: 2, timer: 0
@@ -198,7 +202,7 @@ const ROUNDS = [
     id: 'listen-doctrine', name: 'Listen: the doctrine', icon: '🎧', color: '#8fd694',
     build: p => ({
       kicker: 'Listen to the doctrine, then name the passage',
-      stages: [`<div class="speaker">🎧</div><p class="q-sub">Press <kbd>R</kbd> to hear it again</p>`, refCard(p)],
+      stages: [WAVE_HTML, refCard(p)],
       speak: p.doctrine, speakId: p.id + '-doctrine',
       pts: 1, timer: 0
     })
@@ -397,8 +401,8 @@ const EXCERPT_AT = [0.22, 0.45, 0.68];   // same points tools/fetch-media.mjs cu
 const EXCERPT_SECONDS = 13;
 function excerptsFor(t) {
   const local = GC().media.clips[t.slug];
-  if (local?.length) return local.map(f => 'media/audio/' + f);
-  return t.audioUrl ? EXCERPT_AT.map(at => ({ url: t.audioUrl, at })) : [];
+  if (local?.length) return local.map(f => ({ url: 'media/audio/' + f, key: f.replace(/\.mp3$/, ''), local: true }));
+  return t.audioUrl ? EXCERPT_AT.map((at, i) => ({ url: t.audioUrl, at, key: `${t.slug}-${i + 1}` })) : [];
 }
 const aboutLeader = l => ({ key: 'L:' + l.id, label: bare(l.name) });
 const talkLine = t => `<p class="q-sub">“${esc(t.title)}” · ${esc(GC().conference || 'general conference')}</p>`;
@@ -454,7 +458,7 @@ const GC_ROUNDS = [
       const l = leaderById(t.leaderId);
       const r = whoIs(l, {
         kicker: 'Listen — who is speaking?',
-        prompt: `<div class="speaker">🎙️</div><p class="q-sub">Press <kbd>R</kbd> to hear it again</p>`,
+        prompt: WAVE_HTML,
         pts: 2, timer: 30,
         answer: leaderCard(l, talkLine(t))
       });
@@ -651,10 +655,12 @@ function phrases(text) {
 
 const AUDIO = new Map();          // clip id → filename in audio/
 let clip = null;                  // the <audio> currently playing
+let clipInfo = null;              // { el, start, key } for the waveform
 let lastRead = null;              // { text, id } so R can repeat it
 
 function stopReading() {
   if (clip) { clip.pause(); clip.src = ''; clip = null; }
+  clipInfo = null;
   if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 
@@ -667,6 +673,7 @@ function readAloud(text, id) {
   const file = id && AUDIO.get(id);
   if (file) {
     clip = new Audio('audio/' + file);
+    clipInfo = { el: clip, start: 0, key: null };
     clip.onended = () => { clip = null; };
     clip.play().catch(() => { clip = null; speakIt(text); });   // fall back if it won't play
     return;
@@ -688,25 +695,126 @@ function speakIt(text) {
   }
 }
 
-/* A conference excerpt. A local file is already trimmed and just plays.
-   A streamed talk is the whole recording: seek to the excerpt point once
-   its length is known (the Church's server supports byte-range seeking),
-   play, and stop after EXCERPT_SECONDS. */
+/* A conference excerpt: { url, key, local } for a trimmed local file,
+   which just plays, or { url, at, key } for a streamed talk, which seeks to
+   the excerpt point once its length is known (the Church's server supports
+   byte-range seeking), plays, and stops after EXCERPT_SECONDS. */
 function playExcerpt(ex) {
   if (!S.opts.sound) return;
   stopReading();
   lastRead = { excerpt: ex };
-  const a = clip = new Audio(typeof ex === 'string' ? ex : ex.url);
+  const a = clip = new Audio(ex.url);
+  clipInfo = { el: a, start: 0, key: ex.key };
   a.onended = () => { if (clip === a) clip = null; };
-  if (typeof ex === 'string') { a.play().catch(() => {}); return; }
+  if (ex.local) { a.play().catch(() => {}); return; }
   a.preload = 'auto';
   a.addEventListener('loadedmetadata', () => {
     if (clip !== a) return;
     const start = a.duration * ex.at;
+    clipInfo.start = start;
     a.currentTime = start;
     a.ontimeupdate = () => { if (a.currentTime >= start + EXCERPT_SECONDS) { a.pause(); a.ontimeupdate = null; } };
     a.play().catch(() => {});
   }, { once: true });
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   WAVEFORM
+
+   Mirrored bars that move with whatever is being read aloud.
+
+   For conference excerpts they follow the real recording: each excerpt's
+   loudness, measured 20 times a second by tools/fetch-media.mjs into
+   data/envelopes.json, is played back in time with the audio. That works
+   the same for local copies and for audio streamed from the Church's site.
+
+   Deliberately NOT a Web Audio analyser. The Church's server sends no CORS
+   headers, so an analyser can't read streamed audio at all; and for local
+   files, routing playback through an AudioContext stalled it outright in
+   testing — a silent clip in class. Playback stays a plain <audio> element
+   that nothing here can silence.
+
+   For the browser's speech voice, which can't be measured, the bars follow
+   a speech-like rhythm while it talks. Idle, they settle into a dim line.
+   ═══════════════════════════════════════════════════════════ */
+const BARS = 64;
+let waveRaf = 0, envelopes = {};
+const isPlaying = el => el && !el.paused && !el.ended && el.readyState > 2;
+
+/* 0..1 overall level plus, from an analyser, per-bar spectrum. */
+function waveLevel(now) {
+  const info = clipInfo, el = info?.el;
+  if (isPlaying(el)) {
+    const env = envelopes[info.key];
+    if (env) {
+      const t = (el.currentTime - info.start) * 20;
+      const i = Math.floor(t), f = t - i;
+      const v = (env[i] ?? 0) * (1 - f) + (env[i + 1] ?? env[i] ?? 0) * f;   // interpolate
+      return { level: v / 99 };
+    }
+    return { level: 0.55 + 0.3 * Math.abs(Math.sin(now / 160)) };
+  }
+  if ('speechSynthesis' in window && speechSynthesis.speaking) {
+    // syllable-ish pulses with a slower phrase swell
+    const s = now / 1000;
+    const syl = Math.abs(Math.sin(s * 8.7)) * 0.6 + Math.abs(Math.sin(s * 5.3 + 1.7)) * 0.4;
+    return { level: 0.25 + 0.6 * syl * (0.7 + 0.3 * Math.sin(s * 1.3)) };
+  }
+  return { level: 0, idle: true };
+}
+
+const waveHeights = new Float32Array(BARS);
+
+function drawWave(now) {
+  const cv = document.querySelector('canvas[data-wave]');
+  if (!cv) { waveRaf = 0; return; }
+  waveRaf = requestAnimationFrame(drawWave);
+
+  // Match the canvas buffer to its on-screen size so it's crisp at any scale.
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  const W = Math.round(r.width * dpr), H = Math.round(r.height * dpr);
+  if (!W || !H) return;
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const g = cv.getContext('2d');
+  g.clearRect(0, 0, W, H);
+
+  const src = waveLevel(now), t = now / 1000, half = BARS / 2;
+  for (let i = 0; i < BARS; i++) {
+    const d = Math.abs(i - (BARS - 1) / 2) / half;        // 0 centre → 1 edge
+    let target;
+    if (src.idle) {
+      target = 0.035 + 0.03 * (1 + Math.sin(t * 1.6 - d * 5)) / 2;
+    } else {
+      const shape = 0.3 + 0.7 * (1 - Math.pow(d, 1.7));     // taller in the centre
+      const jitter = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * 13 + i * 2.1) * Math.sin(t * 7.7 + i * 0.7));
+      target = src.level * shape * jitter;
+    }
+    const k = target > waveHeights[i] ? 0.55 : 0.14;          // quick attack, gentle release
+    waveHeights[i] += (target - waveHeights[i]) * k;
+  }
+
+  const color = getComputedStyle(cv).getPropertyValue('--gold').trim() || '#f0b429';
+  const slot = W / BARS, bw = Math.max(2, slot * 0.56), mid = H / 2;
+  const grad = g.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, color); grad.addColorStop(0.5, '#ffffff'); grad.addColorStop(1, color);
+  const active = !src.idle;
+  g.globalAlpha = active ? 1 : 0.45;
+  g.fillStyle = grad;
+  g.shadowColor = color;
+  g.shadowBlur = active ? H * 0.06 : 0;
+  for (let i = 0; i < BARS; i++) {
+    const h = Math.max(bw, waveHeights[i] * (H * 0.92));
+    const x = i * slot + (slot - bw) / 2;
+    g.beginPath();
+    g.roundRect ? g.roundRect(x, mid - h / 2, bw, h, bw / 2) : g.rect(x, mid - h / 2, bw, h);
+    g.fill();
+  }
+  cv.closest('.slide-inner')?.classList.toggle('is-listening', active);
+}
+
+function startWave() {
+  if (!waveRaf && document.querySelector('canvas[data-wave]')) waveRaf = requestAnimationFrame(drawWave);
 }
 
 const repeatReading = () => {
@@ -1042,6 +1150,7 @@ function paintStage() {
     (d.double ? '⭐ DOUBLE POINTS · ' : '') + `${currentPts()} ${currentPts() === 1 ? 'point' : 'points'}`;
   renderActions();
   fitSlide();
+  startWave();
   requestAnimationFrame(fitSlide);   // re-measure once the frame has settled
 }
 
@@ -1422,7 +1531,8 @@ async function loadConference() {
   const [lead, conf, media] = await Promise.all([
     getJSON('data/leaders.json', { leaders: [] }),
     getJSON('data/conference.json', { talks: [] }),
-    getJSON('media/index.json', { portraits: {}, clips: {} })
+    getJSON('media/index.json', { portraits: {}, clips: {} }),
+    getJSON('data/envelopes.json', {}).then(e => { envelopes = e; })
   ]);
   const leaders = (lead.leaders || []).slice().sort((a, b) => a.seniority - b.seniority);
   const byName = Object.fromEntries(leaders.map(l => [bare(l.name), l.id]));
