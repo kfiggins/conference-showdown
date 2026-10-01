@@ -33,10 +33,11 @@ const S = {
   idx: 0,
   stage: 0,
   slideAwards: [],          // team indexes already awarded on this slide
-  opts: { len: 12, shuffle: true, timer: true, sound: true, rounds: null, voice: '', rate: 0.85 },
+  opts: { len: 16, shuffle: true, timer: true, sound: true, rounds: null, voice: '', rate: 0.85, gcShare: 0.7 },
+  gc: null,                 // leaders, talks, temples, media — see loadConference()
   judgedPts: 2,
   timer: { id: null, left: 0, total: 0 },
-  history: []               // { roundId, passageId, awards:[{team,pts}], missed }
+  history: []               // { i, roundId, key, label, awards:[{team,pts}], missed }
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -367,6 +368,175 @@ const ROUNDS = [
   }
 ];
 
+
+/* ═══════════════════════════════════════════════════════════
+   GENERAL CONFERENCE ROUNDS
+
+   These draw on S.gc (data/leaders.json, data/conference.json, and
+   the local media/ folder) rather than the scripture passages. Each
+   declares items(), the pool it picks from, and about(item), which
+   names the item for the final stats. A round whose pool is empty —
+   say, no recordings downloaded yet — simply drops out of the deck.
+   ═══════════════════════════════════════════════════════════ */
+const GC = () => S.gc || { leaders: [], talks: [], templeQuiz: null, media: { portraits: {}, clips: {} } };
+const leaderById = id => GC().leaders.find(l => l.id === id);
+const bare = name => String(name).replace(/^(President|Elder)\s+/, '');
+const portraitFile = id => GC().media.portraits[id];
+const portrait = (id, cls = '') => portraitFile(id)
+  ? `<img class="portrait ${cls}" src="media/portraits/${portraitFile(id)}" alt="">` : '';
+const aboutLeader = l => ({ key: 'L:' + l.id, label: bare(l.name) });
+const talkLine = t => `<p class="q-sub">“${esc(t.title)}” · ${esc(GC().conference || 'general conference')}</p>`;
+
+function leaderCard(l, extra = '') {
+  return `<div class="leader-card">${portrait(l.id, 'portrait-md')}
+    <p class="q-ref">${esc(bare(l.name))}</p>
+    <p class="q-sub">${esc(l.calling || '')}</p>${extra}</div>`;
+}
+
+/* Wrong answers: three other leaders, never the right one. */
+const otherLeaders = (id, n = 3) => shuffle(GC().leaders.filter(l => l.id !== id)).slice(0, n);
+
+/* Half the time it's multiple choice; the other half the class has to
+   call the name out with no options, which is worth a point more. */
+function whoIs(l, { kicker, prompt, pts, timer, answer }) {
+  const mc = Math.random() < 0.5;
+  const opts = mc ? shuffle([l, ...otherLeaders(l.id)]) : null;
+  const names = opts && opts.map(o => bare(o.name));
+  return {
+    kicker: kicker + (mc ? ' — pick one' : ' — call it out, no options!'),
+    stages: [
+      prompt + (mc ? mcOptions(names, opts.indexOf(l), false) : ''),
+      answer || leaderCard(l)
+    ],
+    pts: pts + (mc ? 0 : 1),
+    timer
+  };
+}
+
+/* "business professor" and "businessman" share a stem, so they count as
+   overlapping; "airline pilot" and "lawyer" don't. */
+const careerStems = c => new Set(String(c).toLowerCase().match(/[a-z]+/g)
+  .filter(w => !['and', 'of', 'a', 'the', 'company'].includes(w)).map(w => w.slice(0, 5)));
+const careersOverlap = (a, b) => { const s = careerStems(b); return [...careerStems(a)].some(w => s.has(w)); };
+
+const GC_ROUNDS = [
+  {
+    id: 'gc-photo', kind: 'gc', name: 'Who is this?', icon: '📸', color: '#7cc4ff',
+    items: () => GC().leaders.filter(l => portraitFile(l.id)),
+    about: aboutLeader,
+    build: l => whoIs(l, {
+      kicker: 'Name this leader',
+      prompt: portrait(l.id, 'portrait-xl'),
+      pts: 1, timer: 15
+    })
+  },
+  {
+    id: 'gc-voice', kind: 'gc', name: 'Whose voice?', icon: '🎙️', color: '#b9a3ff',
+    items: () => GC().talks.filter(t => t.leaderId && t.kind !== 'announcement' && GC().media.clips[t.slug]?.length),
+    about: t => aboutLeader(leaderById(t.leaderId)),
+    build: t => {
+      const l = leaderById(t.leaderId);
+      const r = whoIs(l, {
+        kicker: 'Listen — who is speaking?',
+        prompt: `<div class="speaker">🎙️</div><p class="q-sub">Press <kbd>R</kbd> to hear it again</p>`,
+        pts: 2, timer: 30,
+        answer: leaderCard(l, talkLine(t))
+      });
+      r.excerpt = 'media/audio/' + pick(GC().media.clips[t.slug]);
+      return r;
+    }
+  },
+  {
+    id: 'gc-quote', kind: 'gc', name: 'Who said it?', icon: '💬', color: '#ffb86b',
+    items: () => GC().talks.filter(t => t.leaderId)
+      .flatMap(t => (t.quotes || []).map(q => ({ talk: t, quote: q }))),
+    about: x => aboutLeader(leaderById(x.talk.leaderId)),
+    build: x => {
+      const l = leaderById(x.talk.leaderId);
+      return whoIs(l, {
+        kicker: 'Who said this?',
+        prompt: `<p class="q-mid">“${esc(x.quote)}”</p>`,
+        pts: 3, timer: 30,
+        answer: `<p class="q-sub q-quote">“${esc(x.quote)}”</p>${leaderCard(l, talkLine(x.talk))}`
+      });
+    }
+  },
+  {
+    id: 'gc-career', kind: 'gc', name: 'Before they were apostles', icon: '💼', color: '#8fe3a8',
+    items: () => GC().leaders.filter(l => l.formerCareer),
+    about: aboutLeader,
+    build: l => {
+      const detail = l.formerCareerDetail ? `<p class="q-sub">${esc(l.formerCareerDetail)}</p>` : '';
+      const others = GC().leaders.filter(o => o.id !== l.id && o.formerCareer);
+
+      // "Lawyer and judge" and "lawyer" can't sit side by side as options, or
+      // two answers are right. Careers sharing a word (by stem) never mix.
+      const clean = others.filter(o => !careersOverlap(o.formerCareer, l.formerCareer));
+      const unique = clean.length === others.length;
+
+      if (unique && Math.random() < 0.5) {
+        return whoIs(l, {
+          kicker: 'Before full-time Church service, he was…',
+          prompt: `<p class="q-main">${esc(l.formerCareer)}</p>`,
+          pts: 2, timer: 20,
+          answer: leaderCard(l, detail)
+        });
+      }
+      const picks = [];
+      for (const o of shuffle(clean)) {
+        if (picks.length === 3) break;
+        if (!picks.some(p => careersOverlap(p.formerCareer, o.formerCareer))) picks.push(o);
+      }
+      const opts = shuffle([l, ...picks]).map(o => o.formerCareer);
+      const right = opts.indexOf(l.formerCareer);
+      const who = `${portrait(l.id, 'portrait-md')}<p class="q-mid">${esc(bare(l.name))}</p>`;
+      return {
+        kicker: 'What was his career before full-time Church service?',
+        stages: [who + mcOptions(opts, right, false), who + mcOptions(opts, right, true) + detail],
+        pts: 2, timer: 20
+      };
+    }
+  },
+  {
+    id: 'gc-lineup', kind: 'gc', name: 'Line up the Twelve', icon: '🔢', color: '#7fd6c1',
+    maxPerGame: 2,
+    items: () => GC().leaders.filter(l => l.seniority >= 4).length >= 4 ? [1, 2] : [],
+    about: () => ({ key: 'lineup', label: 'Seniority of the Twelve' }),
+    build: () => {
+      const set = shuffle(GC().leaders.filter(l => l.seniority >= 4)).slice(0, 4);
+      const right = set.slice().sort((a, b) => a.seniority - b.seniority);
+      const tile = (l, n) => `<span class="tile tile-leader">${n ? `<span class="tile-num">${n}</span>` : ''}` +
+        `${portrait(l.id, 'portrait-sm')}<span>${esc(bare(l.name))}</span></span>`;
+      return {
+        kicker: 'Put these apostles in order of seniority in the Quorum of the Twelve',
+        stages: [
+          `<div class="tiles">${set.map(l => tile(l)).join('')}</div>`,
+          `<div class="tiles">${right.map((l, i) => tile(l, i + 1)).join('')}</div>` +
+          `<p class="q-sub">Seniority comes from the order they were ordained apostles.</p>`
+        ],
+        pts: 3, timer: 45
+      };
+    }
+  },
+  {
+    id: 'gc-temples', kind: 'gc', name: 'How many temples?', icon: '🏛️', color: '#f0d27a',
+    maxPerGame: 1,
+    items: () => GC().templeQuiz?.questions || [],
+    about: () => ({ key: 'temples', label: 'Temple count' }),
+    build: q => ({
+      kicker: 'Closest guess wins — every team, write a number down!',
+      stages: [
+        `<p class="q-mid">${esc(q.q)}</p>`,
+        `<p class="q-ref">${q.answer}</p><p class="q-sub">${esc(q.detail)}</p>` +
+        `<p class="q-sub">As of ${esc(GC().templeQuiz.asOf)}, per the Church News</p>`
+      ],
+      pts: 3, timer: 30
+    })
+  }
+];
+ROUNDS.forEach(r => { r.kind = 'dm'; });
+ROUNDS.push(...GC_ROUNDS);
+
 const ROUND_BY_ID = Object.fromEntries(ROUNDS.map(r => [r.id, r]));
 
 /* ═══════════════════════════════════════════════════════════
@@ -502,7 +672,22 @@ function speakIt(text) {
   }
 }
 
-const repeatReading = () => { if (lastRead) readAloud(lastRead.text, lastRead.id); };
+/* A recorded conference excerpt — already trimmed to a dozen seconds by
+   tools/fetch-media.mjs, so it just plays from the top. */
+function playExcerpt(url) {
+  if (!S.opts.sound) return;
+  stopReading();
+  lastRead = { excerpt: url };
+  clip = new Audio(url);
+  clip.onended = () => { clip = null; };
+  clip.play().catch(() => { clip = null; });
+}
+
+const repeatReading = () => {
+  if (!lastRead) return;
+  if (lastRead.excerpt) playExcerpt(lastRead.excerpt);
+  else readAloud(lastRead.text, lastRead.id);
+};
 
 if ('speechSynthesis' in window) {
   speechSynthesis.getVoices();
@@ -522,19 +707,19 @@ fetch('audio/index.json')
    ═══════════════════════════════════════════════════════════ */
 function loadPrefs() {
   try {
-    const raw = localStorage.getItem('dm-showdown');
+    const raw = localStorage.getItem('conference-showdown');
     if (!raw) return null;
     return JSON.parse(raw);
   } catch { return null; }
 }
 function savePrefs() {
   try {
-    localStorage.setItem('dm-showdown', JSON.stringify({
+    localStorage.setItem('conference-showdown', JSON.stringify({
       teams: S.teams.map(t => ({ name: t.name, color: t.color })),
       opts: {
         len: S.opts.len, shuffle: S.opts.shuffle, timer: S.opts.timer,
         sound: S.opts.sound, rounds: S.opts.rounds,
-        voice: S.opts.voice, rate: S.opts.rate
+        voice: S.opts.voice, rate: S.opts.rate, gcShare: S.opts.gcShare
       }
     }));
   } catch { /* private browsing, never mind */ }
@@ -586,11 +771,25 @@ function renderVoicePick() {
 }
 
 function renderRoundChips() {
-  $('#roundTypes').innerHTML = ROUNDS.map(r => `
+  const chip = r => `
     <label class="chip">
       <input type="checkbox" value="${r.id}" ${S.opts.rounds.includes(r.id) ? 'checked' : ''}>
       <span class="chip-ico">${r.icon}</span>${esc(r.name)}
-    </label>`).join('');
+    </label>`;
+  const group = (title, kind) => `
+    <h3 class="chip-group">${title}</h3>
+    <div class="chips">${ROUNDS.filter(r => r.kind === kind).map(chip).join('')}</div>`;
+  $('#roundTypes').innerHTML =
+    group(`General conference${GC().conference ? ' · ' + esc(GC().conference) : ''}`, 'gc') +
+    group('Doctrinal Mastery · Old Testament', 'dm');
+
+  // Say plainly which conference rounds have what they need.
+  const nP = Object.keys(GC().media.portraits).length;
+  const nC = Object.keys(GC().media.clips).length;
+  $('#mediaNote').innerHTML = nP || nC
+    ? `📸 ${nP} portrait${nP === 1 ? '' : 's'} · 🎙️ ${nC} talk recording${nC === 1 ? '' : 's'} found on this computer.`
+    : `No photos or recordings on this computer yet, so <b>Who is this?</b> and <b>Whose voice?</b> are skipped. ` +
+      `Run <kbd>node tools/fetch-media.mjs</kbd> once to download them.`;
 }
 
 function initSetup() {
@@ -602,8 +801,9 @@ function initSetup() {
   if (!Array.isArray(S.opts.rounds) || !S.opts.rounds.length) S.opts.rounds = ROUNDS.map(r => r.id);
   S.opts.rounds = S.opts.rounds.filter(id => ROUND_BY_ID[id]);
 
-  $('#setupSet').textContent = `${S.data.year} · ${S.data.set}`;
+  $('#setupSet').textContent = `General conference${GC().conference ? ' · ' + GC().conference : ''} · Doctrinal Mastery`;
   $('#lenOut').textContent = S.opts.len;
+  $('#shareOut').textContent = Math.round(S.opts.gcShare * 100) + '%';
   $('#optShuffle').checked = S.opts.shuffle;
   $('#optTimer').checked = S.opts.timer;
   $('#optSound').checked = S.opts.sound;
@@ -643,6 +843,7 @@ $('#addTeam').onclick = () => {
 $$('[data-len]').forEach(b => b.onclick = () => {
   S.opts.len = Math.max(4, Math.min(40, S.opts.len + +b.dataset.len));
   $('#lenOut').textContent = S.opts.len;
+  $('#shareOut').textContent = Math.round(S.opts.gcShare * 100) + '%';
 });
 $('#voicePick').addEventListener('change', e => {
   S.opts.voice = e.target.value;
@@ -655,6 +856,10 @@ $$('[data-rate]').forEach(b => b.onclick = () => {
   $('#rateOut').textContent = S.opts.rate.toFixed(2) + '\u00d7';
   savePrefs();
   readAloud(VOICE_SAMPLE);
+});
+$$('[data-share]').forEach(b => b.onclick = () => {
+  S.opts.gcShare = Math.max(0, Math.min(1, +(S.opts.gcShare + +b.dataset.share).toFixed(1)));
+  $('#shareOut').textContent = Math.round(S.opts.gcShare * 100) + '%';
 });
 $$('[data-rounds]').forEach(b => b.onclick = () => {
   const on = b.dataset.rounds === 'all';
@@ -672,39 +877,67 @@ function buildDeck() {
   const pool = S.data.passages;
   const enabled = $$('#roundTypes input:checked').map(i => i.value);
   S.opts.rounds = enabled.length ? enabled : ROUNDS.map(r => r.id);
+  const on = S.opts.rounds.map(id => ROUND_BY_ID[id]).filter(Boolean);
+  const dmRounds = on.filter(r => r.kind === 'dm');
+  const gcRounds = on.filter(r => r.kind === 'gc' && r.items().length);
 
-  // Passages cycle through a fresh shuffle each pass, so every passage
-  // shows up before any repeats.
-  const order = [];
-  while (order.length < S.opts.len) order.push(...shuffle(pool));
-  const passages = order.slice(0, S.opts.len);
+  const len = S.opts.len;
+  let nGC = gcRounds.length ? Math.round(len * S.opts.gcShare) : 0;
+  if (!dmRounds.length) nGC = gcRounds.length ? len : 0;
+  const nDM = len - nGC;
+  const slides = [];
 
-  // Round types cycle the same way, then get shuffled so the sequence
-  // never telegraphs what's coming.
-  const types = [];
-  while (types.length < S.opts.len) types.push(...shuffle(S.opts.rounds));
-  const picked = S.opts.shuffle
-    ? types.slice(0, S.opts.len)
-    : Array.from({ length: S.opts.len }, (_, i) => S.opts.rounds[i % S.opts.rounds.length]);
-
-  // no two identical round types back to back
-  for (let i = 1; i < picked.length; i++) {
-    if (picked[i] === picked[i - 1]) {
-      const j = picked.findIndex((t, k) => k > i && t !== picked[i] && t !== (picked[i + 1] || ''));
-      if (j > -1) [picked[i], picked[j]] = [picked[j], picked[i]];
-    }
+  // Doctrinal Mastery: every passage shows up before any repeats, and the
+  // round types cycle through a fresh shuffle each pass.
+  if (nDM && dmRounds.length) {
+    const order = [], types = [];
+    while (order.length < nDM) order.push(...shuffle(pool));
+    while (types.length < nDM) types.push(...shuffle(dmRounds));
+    for (let i = 0; i < nDM; i++) slides.push({ round: types[i], item: order[i] });
   }
 
-  S.deck = passages.map((p, i) => {
-    const rt = ROUND_BY_ID[picked[i]];
-    return {
-      passage: p,
-      round: rt,
-      built: rt.build(p, pool),
-      double: S.opts.shuffle && i > 0 && Math.random() < 0.12,
-      awards: []
-    };
-  });
+  // Conference: round types cycle the same way, except a round with a
+  // per-game cap (one temple question, two line-ups) drops out once used.
+  // Each round draws from its own shuffled queue of items.
+  const used = {}, queues = {};
+  const nextItem = r => {
+    if (!queues[r.id]?.length) queues[r.id] = shuffle(r.items());
+    return queues[r.id].shift();
+  };
+  const gcTypes = [];
+  while (gcTypes.length < nGC) {
+    const open = gcRounds.filter(r => (used[r.id] || 0) < (r.maxPerGame ?? Infinity));
+    if (!open.length) break;
+    for (const r of shuffle(open)) {
+      if (gcTypes.length >= nGC || (used[r.id] || 0) >= (r.maxPerGame ?? Infinity)) continue;
+      used[r.id] = (used[r.id] || 0) + 1;
+      gcTypes.push(r);
+    }
+  }
+  for (const r of gcTypes) slides.push({ round: r, item: nextItem(r) });
+
+  const deck = S.opts.shuffle ? shuffle(slides) : slides;
+
+  // No two identical round types, or the same leader, back to back.
+  const about = s => s.round.kind === 'gc' ? s.round.about(s.item)
+                                          : { key: 'P:' + s.item.id, label: s.item.ref };
+  const clash = (x, y) => x && y && (x.round.id === y.round.id || about(x).key === about(y).key);
+  for (let i = 1; i < deck.length; i++) {
+    if (!clash(deck[i], deck[i - 1])) continue;
+    const j = deck.findIndex((s, k) => k > i && !clash(s, deck[i - 1]) && !clash(s, deck[i + 1]) &&
+                                          !clash(deck[i], deck[k - 1]) && !clash(deck[i], deck[k + 1]));
+    if (j > -1) [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+
+  S.deck = deck.map((s, i) => ({
+    round: s.round,
+    item: s.item,
+    passage: s.round.kind === 'dm' ? s.item : null,
+    ...about(s),
+    built: s.round.build(s.item, pool),
+    double: S.opts.shuffle && i > 0 && Math.random() < 0.12,
+    awards: []
+  }));
   // guarantee the last slide is a big one
   if (S.deck.length > 3) S.deck[S.deck.length - 1].double = true;
 }
@@ -757,6 +990,7 @@ function renderSlide() {
   startTimer(b.timer);
   stopReading();
   if (b.speak) setTimeout(() => readAloud(b.speak, b.speakId), 420);
+  if (b.excerpt) setTimeout(() => playExcerpt(b.excerpt), 420);
   sfx.swish();
 }
 
@@ -878,7 +1112,7 @@ function advance() {
 function next() {
   const d = S.deck[S.idx];
   S.history.push({
-    i: S.idx, roundId: d.round.id, passageId: d.passage.id,
+    i: S.idx, roundId: d.round.id, key: d.key, label: d.label,
     awards: d.awards.slice(), missed: !d.awards.length
   });
   if (S.idx >= S.deck.length - 1) return finish();
@@ -936,7 +1170,7 @@ function endEarly() {
   const d = S.deck[S.idx];
   if (d && !S.history.some(h => h.i === S.idx)) {
     S.history.push({
-      i: S.idx, roundId: d.round.id, passageId: d.passage.id,
+      i: S.idx, roundId: d.round.id, key: d.key, label: d.label,
       awards: d.awards.slice(), missed: !d.awards.length
     });
   }
@@ -950,12 +1184,13 @@ function finish() {
   const winners = S.teams.filter(t => t.score === best);
 
   // per-passage tally across the game
-  const tally = {};
+  const tally = {}, labels = {};
   S.history.forEach(h => {
-    const t = tally[h.passageId] ||= { hit: 0, miss: 0 };
+    const t = tally[h.key] ||= { hit: 0, miss: 0 };
+    labels[h.key] = h.label;
     h.missed ? t.miss++ : t.hit++;
   });
-  const byRef = id => S.data.passages.find(p => p.id === id);
+  const seen = prefix => Object.keys(tally).filter(k => k.startsWith(prefix)).length;
   const CAP = 6;
   const clip = list => ({ rows: list.slice(0, CAP), more: Math.max(0, list.length - CAP) });
   const tough = clip(Object.entries(tally).filter(([, t]) => t.miss > 0)
@@ -993,15 +1228,15 @@ function finish() {
       <div class="stats-panel">
         <h3>📚 Study these next</h3>
         ${tough.rows.length ? `<ul class="stats-list">${tough.rows.map(([id, t]) => `
-          <li><span>${esc(byRef(id).ref)}</span><span class="muted tag-miss">stumped us ${t.miss}×</span></li>`).join('')
+          <li><span>${esc(labels[id])}</span><span class="muted tag-miss">stumped us ${t.miss}×</span></li>`).join('')
         }${tough.more ? `<li><span class="muted">+${tough.more} more</span><span></span></li>` : ''}</ul>`
-      : `<p class="stats-empty">Nothing stumped them — every passage got answered. 🎉</p>`}
+      : `<p class="stats-empty">Nothing stumped them — everything got answered. 🎉</p>`}
       </div>
 
       <div class="stats-panel">
         <h3>✅ Nailed it every time</h3>
         ${solid.rows.length ? `<ul class="stats-list">${solid.rows.map(([id, t]) => `
-          <li><span>${esc(byRef(id).ref)}</span><span class="muted tag-hit">${t.hit}/${t.hit}</span></li>`).join('')
+          <li><span>${esc(labels[id])}</span><span class="muted tag-hit">${t.hit}/${t.hit}</span></li>`).join('')
         }${solid.more ? `<li><span class="muted">+${solid.more} more</span><span></span></li>` : ''}</ul>`
       : `<p class="stats-empty">—</p>`}
       </div>
@@ -1019,7 +1254,8 @@ function finish() {
           <li><span>Rounds played</span><span class="muted">${S.history.length}</span></li>
           <li><span>Rounds answered</span><span class="muted">${answered} of ${S.history.length}</span></li>
           <li><span>Points awarded</span><span class="muted">${totalAwarded}</span></li>
-          <li><span>Passages seen</span><span class="muted">${Object.keys(tally).length} of ${S.data.passages.length}</span></li>
+          <li><span>Leaders covered</span><span class="muted">${seen('L:')} of ${GC().leaders.length}</span></li>
+          <li><span>Passages seen</span><span class="muted">${seen('P:')} of ${S.data.passages.length}</span></li>
         </ul>
       </div>
     </div>
@@ -1118,9 +1354,13 @@ function maybePreview() {
   ];
   const pool = S.data.passages;
   S.deck = list.map((rt, i) => {
-    const p = pool[i % pool.length];
-    return { passage: p, round: rt, built: rt.build(p, pool), double: i === 2, awards: [] };
-  });
+    const item = rt.kind === 'gc' ? (rt.items()[i % Math.max(1, rt.items().length)] ?? null)
+                                  : pool[i % pool.length];
+    if (item == null) return null;
+    return { item, passage: rt.kind === 'dm' ? item : null, round: rt,
+             built: rt.build(item, pool), double: i === 2, awards: [] };
+  }).filter(Boolean);
+  if (!S.deck.length) return false;
   S.idx = Math.min(S.deck.length - 1, Math.max(0, +(q.get('slide') || 0)));
   S.history = [];
   S.opts.sound = false;
@@ -1134,12 +1374,33 @@ function maybePreview() {
   return true;
 }
 
-fetch('data/passages.json')
-  .then(r => r.json())
-  .then(d => { S.data = d; initSetup(); maybePreview(); })
+const getJSON = (url, fallback) => fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
+
+/* data/ is committed; media/ is downloaded locally by tools/fetch-media.mjs
+   and never committed, so it may be missing — the photo and voice rounds
+   then just drop out. */
+async function loadConference() {
+  const [lead, conf, media] = await Promise.all([
+    getJSON('data/leaders.json', { leaders: [] }),
+    getJSON('data/conference.json', { talks: [] }),
+    getJSON('media/index.json', { portraits: {}, clips: {} })
+  ]);
+  const leaders = (lead.leaders || []).slice().sort((a, b) => a.seniority - b.seniority);
+  const byName = Object.fromEntries(leaders.map(l => [bare(l.name), l.id]));
+  const talks = (conf.talks || []).map(t => ({ ...t, leaderId: t.leaderId || byName[bare(t.speaker)] || null }));
+  return {
+    conference: conf.conference || '',
+    leaders, talks,
+    templeQuiz: conf.templeQuiz || null,
+    media: { portraits: media.portraits || {}, clips: media.clips || {} }
+  };
+}
+
+Promise.all([fetch('data/passages.json').then(r => r.json()), loadConference()])
+  .then(([d, gc]) => { S.data = d; S.gc = gc; initSetup(); maybePreview(); })
   .catch(() => {
     $('#screen-setup').innerHTML =
-      `<div class="setup-wrap"><h1 class="title">Couldn't load the passages</h1>
+      `<div class="setup-wrap"><h1 class="title">Couldn't load the game data</h1>
        <p class="q-sub">Open this page through a web server (or GitHub Pages) rather than
        double-clicking the file — browsers block local file reads.</p></div>`;
   });

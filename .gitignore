@@ -1,1 +1,4 @@
 .DS_Store
+# Church portraits and talk audio: downloaded locally by tools/fetch-media.mjs,
+# fine for class, never republished.
+media/

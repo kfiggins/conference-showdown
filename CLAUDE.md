@@ -1,3 +1,48 @@
+# Working on Conference Showdown
+
+A fork of Doctrinal Mastery Showdown that adds general conference rounds. The original repo is
+untouched; changes here don't go back to it.
+
+## Conference data — accuracy first
+
+Misattributing a quote, or naming the wrong man as an apostle, in front of a seminary class is the
+worst way this can fail. So:
+
+- **Never fill conference facts from memory.** Leadership changes (President Nelson died September
+  2025, Elder Holland December 2025; Elders Caussé and Gilbert were called after). Verify against
+  churchofjesuschrist.org leader bios and the Church News, and note an as-of date.
+- **Quotes are verbatim.** Fetch talk pages with curl and extract text with code — never via a
+  summarising fetch tool, which paraphrases. After editing, re-check every quote is a substring of
+  the published talk text (footnote `<sup>` markers stripped).
+- **A quote must not give the speaker away** — no names of his wife or family, his hometown, his
+  former job, or procedural lines only the presiding officer would say ("we will sustain…").
+- **Career options must not overlap.** `careersOverlap()` blocks distractors that share a word stem
+  with the answer ("lawyer" vs "lawyer and judge"); a career shared with anyone else never gets the
+  "which leader had this career?" form.
+
+## How conference rounds plug in
+
+Rounds in `GC_ROUNDS` have `kind: 'gc'`, plus `items()` (the pool to draw from) and `about(item)`
+(`{ key, label }` for the end-of-game stats). Doctrinal Mastery rounds are `kind: 'dm'` and draw
+from the passages. `buildDeck()` splits the game by `S.opts.gcShare`, caps rounds with
+`maxPerGame`, and keeps the same round type or the same leader from appearing twice in a row.
+
+A round whose `items()` is empty drops out silently — that's how the photo and voice rounds
+behave when `media/` hasn't been downloaded.
+
+## Media
+
+`media/` is gitignored and must stay that way (Church-copyrighted portraits and audio).
+`tools/fetch-media.mjs` downloads portraits and cuts three 13-second excerpts per talk with HTTP
+Range requests — it reads the MP3 header for the bitrate and trims to a frame boundary, so no
+ffmpeg and no whole-talk downloads. Excerpts play from the start in a plain `<audio>`; nothing
+seeks, so the stock Python server (no Range support) is fine.
+
+Portrait `<img>`s have fixed CSS sizes. An image that sized itself on load would change the
+slide's height after `fitSlide()` measured it.
+
+---
+
 # Working on this game
 
 A static, dependency-free site. No build step, no package.json.

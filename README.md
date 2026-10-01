@@ -1,51 +1,63 @@
-# Doctrinal Mastery Showdown
+# Conference Showdown
 
-A big-screen, two-team review game for the 24 Doctrinal Mastery passages. Built to be
-projected on a classroom TV and driven with a presentation clicker from across the room.
+A big-screen, two-team review game mixing **general conference** with **Doctrinal Mastery**.
+Forked from Doctrinal Mastery Showdown, which carries on unchanged.
 
-Currently loaded: **Old Testament, 2nd half** — the 12 passages from Isaiah 5 through Malachi 4.
+Loaded with: the **April 2026** general conference (First Presidency and Quorum of the Twelve),
+leadership current as of September 30, 2026, and the 12 Old Testament (2nd half) Doctrinal
+Mastery passages. By default 70% of each game is conference; change it on the start screen.
 
 ## Running it
 
-It's a plain static site. Open `index.html` through any web server:
+**First time on a computer**, download the photos and talk recordings (about 11 MB, a few seconds):
 
 ```sh
-python3 -m http.server 8000
-# then visit http://localhost:8000
+node tools/fetch-media.mjs
 ```
 
-(Double-clicking the file won't work — browsers block the local `fetch` of `data/passages.json`.)
+Then **double-click `Play Conference Showdown.command`** — it starts a local server and opens
+the game. Keep its window open while you play.
 
-## Playing
+The photos and recordings land in `media/`, which is deliberately never committed: they're the
+Church's copyrighted files, fine for class but not ours to republish. Without them the game still
+runs — "Who is this?" and "Whose voice?" just drop out, and the start screen says so.
 
-1. **Name the teams** on the start screen. Pick a colour, or hit 🎲 for a random name.
-2. Choose how many rounds, and which round types are in the mix.
-3. **Start the game**, then hit `F` for full screen.
+## Conference rounds
 
-Every slide is a surprise: the round type *and* the passage are shuffled, so nobody can
-guess what's coming. Roughly one slide in eight is worth **double points**, and the last
-slide always is.
+| | Round | What the class does | Points |
+| --- | --- | --- | --- |
+| 📸 | Who is this? | Names a leader from his official portrait | 1 |
+| 🎙️ | Whose voice? | Hears 13 seconds of a talk (`R` replays) and names the speaker | 2 |
+| 💬 | Who said it? | Names the speaker of a verbatim quote | 3 |
+| 💼 | Before they were apostles | Matches a leader to his career before full-time service | 2 |
+| 🔢 | Line up the Twelve | Puts four apostles in seniority order | 3 |
+| 🏛️ | How many temples? | Closest guess to the Church's temple count wins | 3 |
 
-You are the judge. Reveal the answer when the teams have had their shot, then click the
-team that got it. The scoreboard stays on screen the whole game, and the final screen
-shows who won plus which passages need more work.
+The first three randomly come as **multiple choice** or **call it out** (no options, +1 point).
 
-### Keys (a presentation clicker sends PgDn / PgUp, so it drives everything)
+### Where the content comes from
 
-| Key | What it does |
-| --- | --- |
-| `Space` `→` `PgDn` | Reveal the answer, then move to the next slide |
-| `1` … `4` | Award the round to that team |
-| `B` | Award both teams |
-| `0` | Nobody got it — reveals the answer |
-| `←` `PgUp` | Back a slide (clears its points so you can re-score it) |
-| `R` | Read it aloud again |
-| `T` | Start / stop the timer |
-| `+` `−` | Bigger / smaller text |
-| `F` | Full screen |
-| `?` | Show all the keys |
+Everything is sourced from churchofjesuschrist.org and the Church News, never from memory:
 
-## The round types
+- `data/leaders.json` — names, callings, seniority, careers from each leader's official bio,
+  portrait URLs. Seniority follows the Quorum's official order.
+- `data/conference.json` — every April 2026 talk by the First Presidency and the Twelve: title,
+  link, audio URL, and quotes copied character-for-character from the talk (all 48 re-checked
+  against the published text).
+- Temple counts are as of August 1, 2026, and the slide says so.
+
+No temples were announced at April 2026 conference: since October 2025 the Church announces them
+locally. That's why the temple round asks about the total count instead.
+
+### After a conference
+
+To switch to a new conference, update `data/conference.json` (and `data/leaders.json` if anyone
+was called or released), re-check every quote against the published talk, then run
+`node tools/fetch-media.mjs`. CLAUDE.md has the rules for choosing quotes.
+
+## Doctrinal Mastery
+
+### The round types
 
 Twenty ways to ask about the same passage, so the same 12 verses stay interesting:
 

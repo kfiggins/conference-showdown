@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Doctrinal Mastery Showdown</title>
-<meta name="description" content="A big-screen team game for learning the Doctrinal Mastery passages.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<title>Conference Showdown</title>
+<meta name="description" content="A big-screen team game for general conference and Doctrinal Mastery.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
   <div class="setup-wrap">
     <header class="setup-head">
       <p class="eyebrow" id="setupSet">Doctrinal Mastery</p>
-      <h1 class="title">Doctrinal Mastery<br><span class="title-accent">Showdown</span></h1>
+      <h1 class="title">Conference<br><span class="title-accent">Showdown</span></h1>
     </header>
 
     <div class="setup-grid">
@@ -37,8 +37,17 @@
           <span class="field-label">Rounds this game</span>
           <div class="stepper">
             <button class="btn btn-step" data-len="-2">−</button>
-            <output id="lenOut">12</output>
+            <output id="lenOut">16</output>
             <button class="btn btn-step" data-len="2">+</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field-label">General conference share</span>
+          <div class="stepper">
+            <button class="btn btn-step" data-share="-0.1">−</button>
+            <output id="shareOut">70%</output>
+            <button class="btn btn-step" data-share="0.1">+</button>
           </div>
         </label>
 
@@ -89,7 +98,8 @@
             <button class="btn btn-ghost btn-sm" data-rounds="none">None</button>
           </div>
         </div>
-        <div id="roundTypes" class="chips"></div>
+        <div id="roundTypes"></div>
+        <p class="panel-note" id="mediaNote"></p>
       </div>
     </div>
 
