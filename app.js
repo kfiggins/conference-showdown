@@ -569,23 +569,144 @@ const ac = () => {
   return AC;
 };
 
-function tone(freq, at, dur, type = 'sine', vol = 0.22) {
-  if (!S.opts.sound) return;
-  const c = ac(), o = c.createOscillator(), g = c.createGain();
-  o.type = type; o.frequency.value = freq;
-  g.gain.setValueAtTime(0, c.currentTime + at);
-  g.gain.linearRampToValueAtTime(vol, c.currentTime + at + 0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + at + dur);
-  o.connect(g).connect(c.destination);
-  o.start(c.currentTime + at); o.stop(c.currentTime + at + dur + 0.05);
+/* Everything plays through one chain per audio context: a send into a soft
+   synthetic room reverb, so tones bloom instead of beeping, then a gentle
+   compressor so nothing jumps out over the class. Built for a context
+   rather than for AC directly, so the same voices can be rendered offline
+   (that's how they were measured). */
+function soundChain(c) {
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -20; comp.knee.value = 14; comp.ratio.value = 3;
+  comp.attack.value = 0.004; comp.release.value = 0.25;
+  const master = c.createGain(); master.gain.value = 0.42;
+  const input = c.createGain();
+  const verb = c.createConvolver(); verb.buffer = roomImpulse(c);
+  const wet = c.createGain(); wet.gain.value = 0.2;
+  input.connect(master); input.connect(verb); verb.connect(wet).connect(master);
+  master.connect(comp).connect(c.destination);
+
+  const noise = c.createBuffer(1, c.sampleRate, c.sampleRate);
+  const nd = noise.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  return { c, input, noise };
 }
-const sfx = {
-  ding:  () => { tone(880, 0, .18); tone(1320, .09, .28); },
-  buzz:  () => { tone(150, 0, .3, 'sawtooth', .16); tone(110, .12, .34, 'sawtooth', .16); },
-  tick:  () => tone(660, 0, .06, 'square', .07),
-  swish: () => tone(520, 0, .1, 'triangle', .08),
-  fanfare: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .11, .4, 'triangle', .18)); }
+
+/* A small room: 1.3s of decaying noise, softened so the tail is warm. */
+function roomImpulse(c) {
+  const len = Math.floor(c.sampleRate * 1.3), buf = c.createBuffer(2, len, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch); let lp = 0;
+    for (let i = 0; i < len; i++) {
+      lp += 0.22 * ((Math.random() * 2 - 1) - lp);           // one-pole lowpass
+      d[i] = lp * Math.exp(-i / c.sampleRate * 4.5);
+    }
+  }
+  return buf;
+}
+
+/* ── voices ── each schedules itself at absolute time t ── */
+function envGain(ch, t, vol, attack, tau) {
+  const g = ch.c.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.setTargetAtTime(0, t + attack, tau);
+  g.connect(ch.input);
+  return g;
+}
+function osc(ch, t, type, freq, stopAt) {
+  const o = ch.c.createOscillator(); o.type = type; o.frequency.value = freq;
+  o.start(t); o.stop(stopAt); return o;
+}
+
+/* Bell: a sine with a few quiet overtones that fade faster than it does. */
+function bell(ch, t, f, vol, decay = 0.5) {
+  const partials = [[1, 1, 1], [2, 0.2, 0.5], [3, 0.07, 0.32], [4.16, 0.03, 0.22]];
+  for (const [ratio, amp, d] of partials) {
+    const tau = decay * d, g = envGain(ch, t, vol * amp, 0.004, tau);
+    osc(ch, t, 'sine', f * ratio, t + tau * 7).connect(g);
+  }
+}
+
+/* Woodblock: a quick sine knock with a dropping pitch, plus a tiny click. */
+function wood(ch, t, f, vol) {
+  const g = envGain(ch, t, vol, 0.001, 0.03);
+  const o = osc(ch, t, 'sine', f, t + 0.25);
+  o.frequency.setValueAtTime(f * 1.5, t);
+  o.frequency.exponentialRampToValueAtTime(f, t + 0.02);
+  o.connect(g);
+  const n = ch.c.createBufferSource(); n.buffer = ch.noise;
+  const bp = ch.c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 1.4;
+  n.connect(bp).connect(envGain(ch, t, vol * 0.35, 0.0005, 0.005));
+  n.start(t); n.stop(t + 0.05);
+}
+
+/* Whoosh: filtered noise that sweeps upward and fades. */
+function whoosh(ch, t, dur, vol) {
+  const n = ch.c.createBufferSource(); n.buffer = ch.noise;
+  const bp = ch.c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.8;
+  bp.frequency.setValueAtTime(380, t);
+  bp.frequency.exponentialRampToValueAtTime(1500, t + dur);
+  const g = ch.c.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + dur * 0.45);
+  g.gain.linearRampToValueAtTime(0, t + dur);
+  n.connect(bp).connect(g).connect(ch.input);
+  n.start(t); n.stop(t + dur + 0.02);
+}
+
+/* Pad: detuned triangles through a lowpass, swelling in and out. */
+function pad(ch, t, freqs, dur, vol) {
+  const lp = ch.c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500;
+  const g = ch.c.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + dur * 0.3);
+  g.gain.setTargetAtTime(0, t + dur * 0.55, dur * 0.18);
+  lp.connect(g).connect(ch.input);
+  for (const f of freqs) for (const cents of [-7, 7]) {
+    const o = osc(ch, t, 'triangle', f, t + dur * 1.6);
+    o.detune.value = cents; o.connect(lp);
+  }
+}
+
+/* ── the game's sounds ── */
+const NOTE = { C4: 261.63, E4: 329.63, G4: 392, A3: 220, E3: 164.81, C5: 523.25, E5: 659.25,
+               G5: 783.99, C6: 1046.5, D6: 1174.66, G6: 1567.98, Db4: 277.18 };
+const SOUNDS = {
+  // a team scored: two bright bells a fifth apart, with a faint sparkle
+  correct: (ch, t) => { bell(ch, t, NOTE.G5, 0.14, 0.4); bell(ch, t + 0.08, NOTE.D6, 0.12, 0.5);
+                        bell(ch, t + 0.16, NOTE.G6, 0.03, 0.35); },
+  // nobody got it: a soft, falling "aw" — sympathetic, not a penalty buzzer
+  miss:    (ch, t) => { wood(ch, t, NOTE.E4, 0.2); wood(ch, t + 0.16, NOTE.Db4, 0.18);
+                        bell(ch, t + 0.16, NOTE.Db4, 0.05, 0.35); },
+  // the last five seconds: a quiet woodblock, a touch higher on the final one
+  tick:    (ch, t) => wood(ch, t, 880, 0.18),
+  tickLast:(ch, t) => wood(ch, t, 1175, 0.22),
+  // time's up: a low, gentle bong
+  timeUp:  (ch, t) => { bell(ch, t, NOTE.A3, 0.12, 0.8); bell(ch, t, NOTE.E4, 0.05, 0.6); },
+  // a new slide: an airy whoosh, barely there
+  slide:   (ch, t) => whoosh(ch, t, 0.32, 0.11),
+  // the winner: a rising arpeggio over a warm chord
+  fanfare: (ch, t) => { [NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6].forEach((f, i) => bell(ch, t + i * 0.12, f, 0.11, 0.7));
+                        pad(ch, t + 0.3, [NOTE.C4, NOTE.G4, NOTE.E5], 2.2, 0.045);
+                        bell(ch, t + 0.62, NOTE.G6, 0.05, 0.9); }
 };
+
+let liveChain = null;
+function play(name) {
+  if (!S.opts.sound) return;
+  const c = ac();
+  liveChain ||= soundChain(c);
+  SOUNDS[name](liveChain, c.currentTime + 0.01);
+}
+const sfx = Object.fromEntries(Object.keys(SOUNDS).map(k => [k, () => play(k)]));
+
+/* Setup's "Hear them" button: everything once, in game order, so the
+   classroom volume can be set before the kids arrive. */
+function previewSounds() {
+  const at = [['slide', 0], ['tick', 0.7], ['tick', 1.7], ['tickLast', 2.7], ['timeUp', 3.5],
+              ['correct', 5.4], ['miss', 6.6], ['fanfare', 7.8]];
+  at.forEach(([n, s]) => setTimeout(() => play(n), s * 1000));
+}
 
 /* ═══════════════════════════════════════════════════════════
    READING ALOUD
@@ -963,7 +1084,7 @@ $('#teamSetup').addEventListener('click', e => {
   if (b.dataset.dice != null) {
     const taken = S.teams.map(t => t.name);
     S.teams[b.dataset.dice].name = pick(NAME_IDEAS.filter(n => !taken.includes(n))) || pick(NAME_IDEAS);
-    renderTeamSetup(); sfx.swish();
+    renderTeamSetup(); sfx.slide();
   } else if (b.dataset.color) {
     S.teams[b.dataset.ti].color = b.dataset.color;
     renderTeamSetup();
@@ -988,6 +1109,7 @@ $('#voicePick').addEventListener('change', e => {
   readAloud(VOICE_SAMPLE);
 });
 $('#voiceTest').onclick = () => readAloud(VOICE_SAMPLE);
+$('#sfxTest').onclick = previewSounds;
 $$('[data-rate]').forEach(b => b.onclick = () => {
   S.opts.rate = Math.max(0.6, Math.min(1.15, +(S.opts.rate + +b.dataset.rate).toFixed(2)));
   $('#rateOut').textContent = S.opts.rate.toFixed(2) + '\u00d7';
@@ -1138,7 +1260,7 @@ function renderSlide() {
   stopReading();
   if (b.speak) setTimeout(() => readAloud(b.speak, b.speakId), 420);
   if (b.excerpt) setTimeout(() => playExcerpt(b.excerpt), 420);
-  sfx.swish();
+  sfx.slide();
 }
 
 function paintStage() {
@@ -1220,7 +1342,7 @@ function award(which) {
 
   if (which === 'none') {
     d.missed = true;
-    sfx.buzz();
+    sfx.miss();
   } else {
     const list = which === 'both'
       ? S.teams.map((_, i) => i).filter(i => !S.slideAwards.includes(i))
@@ -1233,7 +1355,7 @@ function award(which) {
       d.missed = false;
     });
     if (!list.length) return;
-    sfx.ding();
+    sfx.correct();
     renderScorebar();
     list.forEach(i => {
       const el = $(`.score[data-si="${i}"]`);
@@ -1294,8 +1416,9 @@ function startTimer(secs) {
   S.timer.id = setInterval(() => {
     S.timer.left--;
     paintTimer();
-    if (S.timer.left <= 5 && S.timer.left > 0) sfx.tick();
-    if (S.timer.left <= 0) { stopTimer(); sfx.buzz(); }
+    if (S.timer.left > 1 && S.timer.left <= 5) sfx.tick();
+    if (S.timer.left === 1) sfx.tickLast();
+    if (S.timer.left <= 0) { stopTimer(); sfx.timeUp(); }
   }, 1000);
 }
 function paintTimer() {
