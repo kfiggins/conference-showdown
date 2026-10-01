@@ -745,7 +745,8 @@ function savePrefs() {
       opts: {
         len: S.opts.len, shuffle: S.opts.shuffle, timer: S.opts.timer,
         sound: S.opts.sound, rounds: S.opts.rounds,
-        voice: S.opts.voice, rate: S.opts.rate, gcShare: S.opts.gcShare
+        voice: S.opts.voice, rate: S.opts.rate, gcShare: S.opts.gcShare,
+        knownRounds: ROUNDS.map(r => r.id)
       }
     }));
   } catch { /* private browsing, never mind */ }
@@ -823,7 +824,11 @@ function initSetup() {
     { name: '', color: PALETTE[0] }, { name: '', color: PALETTE[1] }
   ]).map(t => ({ ...t, score: 0 }));
   Object.assign(S.opts, saved?.opts || {});
-  if (!Array.isArray(S.opts.rounds) || !S.opts.rounds.length) S.opts.rounds = ROUNDS.map(r => r.id);
+  if (!Array.isArray(S.opts.rounds)) S.opts.rounds = ROUNDS.map(r => r.id);
+  // A round type added since these settings were saved starts switched on,
+  // rather than staying hidden behind the old selection.
+  const known = new Set(S.opts.knownRounds || S.opts.rounds);
+  for (const r of ROUNDS) if (!known.has(r.id)) S.opts.rounds.push(r.id);
   S.opts.rounds = S.opts.rounds.filter(id => ROUND_BY_ID[id]);
 
   $('#setupSet').textContent = `General conference${GC().conference ? ' · ' + GC().conference : ''} · Doctrinal Mastery`;
@@ -868,7 +873,6 @@ $('#addTeam').onclick = () => {
 $$('[data-len]').forEach(b => b.onclick = () => {
   S.opts.len = Math.max(4, Math.min(40, S.opts.len + +b.dataset.len));
   $('#lenOut').textContent = S.opts.len;
-  $('#shareOut').textContent = Math.round(S.opts.gcShare * 100) + '%';
 });
 $('#voicePick').addEventListener('change', e => {
   S.opts.voice = e.target.value;
@@ -894,6 +898,16 @@ $$('[data-rounds]').forEach(b => b.onclick = () => {
   $('#' + id).addEventListener('change', e => {
     S.opts[id.replace('opt', '').toLowerCase()] = e.target.checked;
   }));
+
+/* Remember the setup the moment anything changes — not only when a game
+   starts — so a refresh never throws away a selection. This runs after each
+   control's own handler (it listens on the whole screen, so events reach it
+   last), which means it always saves the updated state. */
+const rememberSetup = () => {
+  S.opts.rounds = $$('#roundTypes input:checked').map(i => i.value);
+  savePrefs();
+};
+['click', 'input', 'change'].forEach(ev => $('#screen-setup').addEventListener(ev, rememberSetup));
 
 /* ═══════════════════════════════════════════════════════════
    DECK BUILDING — the "you never know what's next" part
