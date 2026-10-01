@@ -381,9 +381,25 @@ const ROUNDS = [
 const GC = () => S.gc || { leaders: [], talks: [], templeQuiz: null, media: { portraits: {}, clips: {} } };
 const leaderById = id => GC().leaders.find(l => l.id === id);
 const bare = name => String(name).replace(/^(President|Elder)\s+/, '');
-const portraitFile = id => GC().media.portraits[id];
-const portrait = (id, cls = '') => portraitFile(id)
-  ? `<img class="portrait ${cls}" src="media/portraits/${portraitFile(id)}" alt="">` : '';
+/* Media comes from one of two places. On a computer that has run
+   tools/fetch-media.mjs, local copies in media/ (fast, works offline).
+   Anywhere else — including the GitHub Pages site — straight from
+   churchofjesuschrist.org, which the repo only links to. */
+const portraitSrc = id => {
+  const local = GC().media.portraits[id];
+  if (local) return 'media/portraits/' + local;
+  return leaderById(id)?.portraitUrl || null;
+};
+const portrait = (id, cls = '') => portraitSrc(id)
+  ? `<img class="portrait ${cls}" src="${esc(portraitSrc(id))}" alt="" referrerpolicy="no-referrer">` : '';
+
+const EXCERPT_AT = [0.22, 0.45, 0.68];   // same points tools/fetch-media.mjs cuts at
+const EXCERPT_SECONDS = 13;
+function excerptsFor(t) {
+  const local = GC().media.clips[t.slug];
+  if (local?.length) return local.map(f => 'media/audio/' + f);
+  return t.audioUrl ? EXCERPT_AT.map(at => ({ url: t.audioUrl, at })) : [];
+}
 const aboutLeader = l => ({ key: 'L:' + l.id, label: bare(l.name) });
 const talkLine = t => `<p class="q-sub">“${esc(t.title)}” · ${esc(GC().conference || 'general conference')}</p>`;
 
@@ -422,7 +438,7 @@ const careersOverlap = (a, b) => { const s = careerStems(b); return [...careerSt
 const GC_ROUNDS = [
   {
     id: 'gc-photo', kind: 'gc', name: 'Who is this?', icon: '📸', color: '#7cc4ff',
-    items: () => GC().leaders.filter(l => portraitFile(l.id)),
+    items: () => GC().leaders.filter(l => portraitSrc(l.id)),
     about: aboutLeader,
     build: l => whoIs(l, {
       kicker: 'Name this leader',
@@ -432,7 +448,7 @@ const GC_ROUNDS = [
   },
   {
     id: 'gc-voice', kind: 'gc', name: 'Whose voice?', icon: '🎙️', color: '#b9a3ff',
-    items: () => GC().talks.filter(t => t.leaderId && t.kind !== 'announcement' && GC().media.clips[t.slug]?.length),
+    items: () => GC().talks.filter(t => t.leaderId && t.kind !== 'announcement' && excerptsFor(t).length),
     about: t => aboutLeader(leaderById(t.leaderId)),
     build: t => {
       const l = leaderById(t.leaderId);
@@ -442,7 +458,7 @@ const GC_ROUNDS = [
         pts: 2, timer: 30,
         answer: leaderCard(l, talkLine(t))
       });
-      r.excerpt = 'media/audio/' + pick(GC().media.clips[t.slug]);
+      r.excerpt = pick(excerptsFor(t));
       return r;
     }
   },
@@ -672,15 +688,25 @@ function speakIt(text) {
   }
 }
 
-/* A recorded conference excerpt — already trimmed to a dozen seconds by
-   tools/fetch-media.mjs, so it just plays from the top. */
-function playExcerpt(url) {
+/* A conference excerpt. A local file is already trimmed and just plays.
+   A streamed talk is the whole recording: seek to the excerpt point once
+   its length is known (the Church's server supports byte-range seeking),
+   play, and stop after EXCERPT_SECONDS. */
+function playExcerpt(ex) {
   if (!S.opts.sound) return;
   stopReading();
-  lastRead = { excerpt: url };
-  clip = new Audio(url);
-  clip.onended = () => { clip = null; };
-  clip.play().catch(() => { clip = null; });
+  lastRead = { excerpt: ex };
+  const a = clip = new Audio(typeof ex === 'string' ? ex : ex.url);
+  a.onended = () => { if (clip === a) clip = null; };
+  if (typeof ex === 'string') { a.play().catch(() => {}); return; }
+  a.preload = 'auto';
+  a.addEventListener('loadedmetadata', () => {
+    if (clip !== a) return;
+    const start = a.duration * ex.at;
+    a.currentTime = start;
+    a.ontimeupdate = () => { if (a.currentTime >= start + EXCERPT_SECONDS) { a.pause(); a.ontimeupdate = null; } };
+    a.play().catch(() => {});
+  }, { once: true });
 }
 
 const repeatReading = () => {
@@ -783,13 +809,12 @@ function renderRoundChips() {
     group(`General conference${GC().conference ? ' · ' + esc(GC().conference) : ''}`, 'gc') +
     group('Doctrinal Mastery · Old Testament', 'dm');
 
-  // Say plainly which conference rounds have what they need.
+  // Say plainly where the photos and recordings are coming from.
   const nP = Object.keys(GC().media.portraits).length;
   const nC = Object.keys(GC().media.clips).length;
   $('#mediaNote').innerHTML = nP || nC
-    ? `📸 ${nP} portrait${nP === 1 ? '' : 's'} · 🎙️ ${nC} talk recording${nC === 1 ? '' : 's'} found on this computer.`
-    : `No photos or recordings on this computer yet, so <b>Who is this?</b> and <b>Whose voice?</b> are skipped. ` +
-      `Run <kbd>node tools/fetch-media.mjs</kbd> once to download them.`;
+    ? `📸 ${nP} portrait${nP === 1 ? '' : 's'} · 🎙️ ${nC} talk recording${nC === 1 ? '' : 's'} saved on this computer.`
+    : `📸 🎙️ Photos and recordings stream from churchofjesuschrist.org, so this needs an internet connection.`;
 }
 
 function initSetup() {

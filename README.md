@@ -9,18 +9,19 @@ Mastery passages. By default 70% of each game is conference; change it on the st
 
 ## Running it
 
-**First time on a computer**, download the photos and talk recordings (about 11 MB, a few seconds):
+**Anywhere:** https://kfiggins.github.io/conference-showdown/ — needs internet. Photos and talk
+recordings stream straight from churchofjesuschrist.org; this repo only holds links to them, never
+copies.
+
+**On a laptop you'll use a lot (optional):** save local copies so it's faster and works offline:
 
 ```sh
 node tools/fetch-media.mjs
 ```
 
-Then **double-click `Play Conference Showdown.command`** — it starts a local server and opens
-the game. Keep its window open while you play.
-
-The photos and recordings land in `media/`, which is deliberately never committed: they're the
-Church's copyrighted files, fine for class but not ours to republish. Without them the game still
-runs — "Who is this?" and "Whose voice?" just drop out, and the start screen says so.
+then double-click `Play Conference Showdown.command`. Local copies go in `media/`, which is never
+committed — they're the Church's copyrighted files, fine for class but not ours to republish. The
+start screen says which mode it's in.
 
 ## Conference rounds
 

@@ -32,6 +32,12 @@ behave when `media/` hasn't been downloaded.
 
 ## Media
 
+Two sources, chosen per item: local copies in `media/` when present, otherwise streamed from
+churchofjesuschrist.org using the `portraitUrl` / `audioUrl` in the data files. The public
+GitHub Pages site always streams. A streamed talk is the whole recording; `playExcerpt()` seeks to
+the excerpt point after `loadedmetadata` and stops 13 seconds later — the Church's server supports
+byte ranges, which seeking needs.
+
 `media/` is gitignored and must stay that way (Church-copyrighted portraits and audio).
 `tools/fetch-media.mjs` downloads portraits and cuts three 13-second excerpts per talk with HTTP
 Range requests — it reads the MP3 header for the bitrate and trims to a frame boundary, so no
