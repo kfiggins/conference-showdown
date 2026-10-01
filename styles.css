@@ -819,3 +819,22 @@ kbd { background: var(--bg-2); color: var(--ink); border: 2px solid var(--ink); 
 }
 /* The hint under the waveform shouldn't outshout it on a sparse slide. */
 .wave-hint { font-size: 1.5em; }
+
+/* background-music pill, bottom-left on the start and final screens */
+.music-pill {
+  position: fixed; left: calc(var(--u) * 1.6); bottom: calc(var(--u) * 1.6); z-index: 40;
+  display: flex; align-items: center; gap: calc(var(--u) * .9);
+  background: var(--bg-2); color: var(--ink); border: 3px solid var(--ink); border-radius: 999px;
+  box-shadow: var(--hard-sm); padding: calc(var(--u) * .55) calc(var(--u) * 1.4) calc(var(--u) * .55) calc(var(--u) * .7);
+  font-family: var(--font-ui); cursor: pointer; text-align: left; max-width: 40vw;
+}
+.music-pill[hidden] { display: none; }
+.music-pill.is-playing { background: var(--gold); }
+.music-ico { width: calc(var(--u) * 2.6); height: calc(var(--u) * 2.6); flex: none;
+  background: var(--ink); color: var(--gold); border-radius: 50%; padding: calc(var(--u) * .5); box-sizing: border-box; }
+.music-pill.is-playing .music-ico { animation: musicBob 1.2s ease-in-out infinite; }
+@keyframes musicBob { 50% { transform: rotate(-10deg) scale(1.08); } }
+.music-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.music-text b { font-size: calc(var(--u) * 1.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-text small { font-size: calc(var(--u) * 1.15); color: var(--ink-dim); }
+@media (prefers-reduced-motion: reduce) { .music-pill.is-playing .music-ico { animation: none; } }

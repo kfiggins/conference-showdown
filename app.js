@@ -935,6 +935,84 @@ function startWave() {
   if (!waveRaf && document.querySelector('canvas[data-wave]')) waveRaf = requestAnimationFrame(drawWave);
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND MUSIC
+
+   A Tabernacle Choir recording plays quietly on the start screen, and a
+   different one on the final screen. Both stream from the Church's own
+   media servers (data/conference.json → music); the repo holds only the
+   links. Plain <audio>, looping, faded in and out by volume.
+
+   Browsers won't start audio before the page has been touched, so the
+   first click or key on the start screen starts it, and the pill in the
+   corner says so until then. The pill also turns it off; that choice is
+   remembered.
+   ═══════════════════════════════════════════════════════════ */
+const MUSIC_VOL = 0.32;
+let music = null, musicWhich = null, musicFade = 0;
+
+function fadeTo(el, target, ms, then) {
+  clearInterval(musicFade);
+  const from = el.volume, t0 = performance.now();
+  musicFade = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    el.volume = Math.max(0, Math.min(1, from + (target - from) * k));
+    if (k >= 1) { clearInterval(musicFade); then?.(); }
+  }, 40);
+}
+
+function paintMusicPill() {
+  const pill = $('#musicPill'), song = musicWhich && GC().music?.[musicWhich];
+  pill.hidden = !song;
+  if (!song) return;
+  const on = S.opts.music !== false, playing = music && !music.paused;
+  pill.setAttribute('aria-pressed', String(on && playing));
+  pill.classList.toggle('is-playing', on && playing);
+  $('#musicTitle').textContent = song.title;
+  $('#musicSub').textContent = !on ? 'Music off · tap to turn on'
+    : playing ? `${song.performer} · tap to stop` : 'Tap anywhere to start the music';
+}
+
+function startMusic(which) {
+  const song = GC().music?.[which];
+  musicWhich = which;
+  if (!song || S.opts.music === false) { stopMusic(); paintMusicPill(); return; }
+  if (music && music.dataset.which === which) {
+    if (music.paused) music.play().then(paintMusicPill, paintMusicPill);
+    fadeTo(music, MUSIC_VOL, 1500); paintMusicPill(); return;
+  }
+  stopMusic(true);
+  const el = music = new Audio(song.url);
+  el.dataset.which = which;
+  el.loop = true; el.volume = 0;
+  el.addEventListener('playing', paintMusicPill);
+  el.addEventListener('pause', paintMusicPill);
+  el.play().then(() => fadeTo(el, MUSIC_VOL, 2500)).catch(() => {}).finally(paintMusicPill);
+}
+
+function stopMusic(now) {
+  const el = music; music = null;
+  if (!el) return;
+  const end = () => { el.pause(); el.src = ''; paintMusicPill(); };
+  if (now || el.paused) end(); else fadeTo(el, 0, 900, end);
+}
+
+/* The first interaction is what browsers need before they'll play. */
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => {
+  if (musicWhich && S.opts.music !== false && (!music || music.paused) &&
+      !$('#screen-play').classList.contains('is-active')) startMusic(musicWhich);
+}, true));
+
+$('#musicPill').addEventListener('click', e => {
+  e.stopPropagation();
+  const playing = music && !music.paused;
+  S.opts.music = !(S.opts.music !== false && playing) ? true : false;
+  savePrefs();
+  if (S.opts.music) startMusic(musicWhich); else stopMusic();
+  paintMusicPill();
+});
+
 const repeatReading = () => {
   if (!lastRead) return;
   if (lastRead.excerpt) playExcerpt(lastRead.excerpt);
@@ -971,7 +1049,7 @@ function savePrefs() {
       opts: {
         len: S.opts.len, shuffle: S.opts.shuffle, timer: S.opts.timer,
         sound: S.opts.sound, rounds: S.opts.rounds,
-        voice: S.opts.voice, rate: S.opts.rate, gcShare: S.opts.gcShare,
+        voice: S.opts.voice, rate: S.opts.rate, gcShare: S.opts.gcShare, music: S.opts.music,
         knownRounds: ROUNDS.map(r => r.id)
       }
     }));
@@ -1216,6 +1294,7 @@ function show(screen) {
 }
 
 function startGame() {
+  stopMusic(); musicWhich = null; paintMusicPill();
   S.teams.forEach((t, i) => { t.name = (t.name || '').trim() || `Team ${i + 1}`; t.score = 0; });
   buildDeck();
   if (!S.deck.length) return;
@@ -1533,11 +1612,12 @@ function finish() {
     </div>`;
 
   show('stats');
+  setTimeout(() => { if ($('#screen-stats').classList.contains('is-active')) startMusic('end'); }, 2600);  // after the fanfare
   sfx.fanfare();
   // start the bar animation only once the screen actually has a box
   requestAnimationFrame(() => $('.bars')?.classList.add('is-live'));
   $('#againBtn').onclick = () => startGame();
-  $('#setupBtn').onclick = () => { show('setup'); renderTeamSetup(); };
+  $('#setupBtn').onclick = () => { show('setup'); renderTeamSetup(); startMusic('start'); };
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1660,12 +1740,13 @@ async function loadConference() {
     conference: conf.conference || '',
     leaders, talks,
     templeQuiz: conf.templeQuiz || null,
+    music: conf.music || null,
     media: { portraits: media.portraits || {}, clips: media.clips || {} }
   };
 }
 
 Promise.all([fetch('data/passages.json').then(r => r.json()), loadConference()])
-  .then(([d, gc]) => { S.data = d; S.gc = gc; initSetup(); maybePreview(); })
+  .then(([d, gc]) => { S.data = d; S.gc = gc; initSetup(); if (!maybePreview()) startMusic('start'); })
   .catch(() => {
     $('#screen-setup').innerHTML =
       `<div class="setup-wrap"><h1 class="title">Couldn't load the game data</h1>
