@@ -30,7 +30,9 @@ Every one of these has a way to produce a question with two right answers. The g
   (`PLACE_GROUPS`: "speaks French" vs. born in France); a mission fact when this man's own mission
   isn't on record; or a fact flagged `funFactCanBeLie: false` in leaders.json (Elder Gong's
   "served as a seminary teacher" could be true of others).
-- **Odd one out.** `oddSet()` rejects any four where another grouping in `ODD_GROUPS` singles out a
+- **Odd one out.** Groupings are plain biographical facts only. Never split by calling (First
+  Presidency vs. Twelve): all fifteen are apostles, and President Eyring is also President of the
+  Quorum of the Twelve, so any such explanation is false. `oddSet()` rejects any four where another grouping in `ODD_GROUPS` singles out a
   different man. Add a grouping and every set is re-checked against it automatically.
 - **Where in the world?** Only leaders whose `birthCity` no other leader shares (Logan, Salt Lake
   City, and Oakland each have two). The map is `data/world-land.json`, built once by

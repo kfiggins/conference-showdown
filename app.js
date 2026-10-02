@@ -453,12 +453,11 @@ const PLACE_GROUPS = [['Japan'], ['Brazil', 'Portug'], ['Fran', 'French', 'Borde
 const sharedPlace = (a, b) => PLACE_GROUPS.some(g => g.some(s => a.includes(s)) && g.some(s => b.includes(s)));
 
 /* Groupings for "Odd one out". Each splits the leaders in two; a set is
-   three from one side and one from the other. */
+   three from one side and one from the other. Only plain biographical facts:
+   there is deliberately no First Presidency vs. Twelve grouping — all fifteen
+   are apostles, and President Eyring is also President of the Quorum of the
+   Twelve, so "the other three are in the Twelve" would teach something false. */
 const ODD_GROUPS = [
-  { id: 'fp', label: 'First Presidency', test: l => l.seniority <= 3,
-    why: o => o.seniority <= 3
-      ? `${bare(o.name)} is in the First Presidency. The other three are in the Quorum of the Twelve.`
-      : `${bare(o.name)} is in the Quorum of the Twelve. The other three are in the First Presidency.` },
   { id: 'abroad', label: 'Born outside the US', test: l => !/United States$/.test(l.birthplace),
     why: o => !/United States$/.test(o.birthplace)
       ? `${bare(o.name)} was born outside the United States, in ${placeName(o.birthplace)}. The other three were born in the US.`
