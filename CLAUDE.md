@@ -20,10 +20,26 @@ worst way this can fail. So:
   with the answer ("lawyer" vs "lawyer and judge"); a career shared with anyone else never gets the
   "which leader had this career?" form.
 
+## Fairness rules for the leader rounds
+
+Every one of these has a way to produce a question with two right answers. The guards:
+
+- **Two truths and a lie.** The lie is always another leader's *real* fact of the same kind, never
+  invented. It's rejected if it could be true of this man: same birth city; a career sharing a
+  word stem (`careersOverlap`); a fun fact touching the same place or its language
+  (`PLACE_GROUPS`: "speaks French" vs. born in France); a mission fact when this man's own mission
+  isn't on record; or a fact flagged `funFactCanBeLie: false` in leaders.json (Elder Gong's
+  "served as a seminary teacher" could be true of others).
+- **Odd one out.** `oddSet()` rejects any four where another grouping in `ODD_GROUPS` singles out a
+  different man. Add a grouping and every set is re-checked against it automatically.
+- **Where in the world?** Only leaders whose `birthCity` no other leader shares (Logan, Salt Lake
+  City, and Oakland each have two). The map is `data/world-land.json`, built once by
+  `tools/make-map.mjs` from Natural Earth (public domain); the zoom is a CSS transform, not SMIL.
+
 ## How conference rounds plug in
 
 Rounds in `GC_ROUNDS` have `kind: 'gc'`, plus `items()` (the pool to draw from) and `about(item)`
-(`{ key, label }` for the end-of-game stats). Doctrinal Mastery rounds are `kind: 'dm'` and draw
+(`{ key, label }` for the end-of-game stats). `build` may return `null` when it can't make a fair slide; the deck drops it. Doctrinal Mastery rounds are `kind: 'dm'` and draw
 from the passages. `buildDeck()` splits the game by `S.opts.gcShare`, caps rounds with
 `maxPerGame`, and keeps the same round type or the same leader from appearing twice in a row.
 

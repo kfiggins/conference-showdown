@@ -33,6 +33,9 @@ start screen says which mode it's in.
 | 💼 | Before they were apostles | Matches a leader to his career before full-time service | 2 |
 | 🔢 | Line up the Twelve | Puts four apostles in seniority order | 3 |
 | 🏛️ | How many temples? | Closest guess to the Church's temple count wins | 3 |
+| 🤥 | Two truths and a lie | Spots the false fact about a leader | 2 |
+| 🧩 | Odd one out | Picks which of four leaders doesn't belong, and why | 2 |
+| 🗺️ | Where in the world? | Names the apostle from a pin on his birthplace | 2 |
 
 The first three randomly come as **multiple choice** or **call it out** (no options, +1 point).
 

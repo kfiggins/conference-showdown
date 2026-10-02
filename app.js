@@ -439,6 +439,71 @@ const careerStems = c => new Set(String(c).toLowerCase().match(/[a-z]+/g)
   .filter(w => !['and', 'of', 'a', 'the', 'company'].includes(w)).map(w => w.slice(0, 5)));
 const careersOverlap = (a, b) => { const s = careerStems(b); return [...careerStems(a)].some(w => s.has(w)); };
 
+
+/* "Provo, Utah, United States" → "Provo, Utah". */
+const placeName = p => String(p).replace(/,\s*United States$/, '');
+const aOrAn = s => (/^[aeiou]/i.test(s) ? 'an ' : 'a ') + s;
+/* Two facts that touch the same place or its language (a mission in Japan;
+   "speaks French" next to a man born in France) are too close to call one
+   of them a lie. Each group lists stems that count as the same place. */
+const PLACE_GROUPS = [['Japan'], ['Brazil', 'Portug'], ['Fran', 'French', 'Bordeaux'], ['German', 'Frankfurt'],
+  ['Czech', 'Ostrava'], ['Spanish', 'Spain', 'Argentin', 'Mexic'], ['Engl', 'Brit', 'Carlisle'], ['Swed'],
+  ['Utah', 'Cache Valley', 'Logan', 'Provo', 'Ogden', 'Salt Lake'], ['Idaho', 'Pocatello'], ['Arizona', 'Phoenix'],
+  ['California', 'Oakland', 'Redwood'], ['New Jersey', 'Princeton']];
+const sharedPlace = (a, b) => PLACE_GROUPS.some(g => g.some(s => a.includes(s)) && g.some(s => b.includes(s)));
+
+/* Groupings for "Odd one out". Each splits the leaders in two; a set is
+   three from one side and one from the other. */
+const ODD_GROUPS = [
+  { id: 'fp', label: 'First Presidency', test: l => l.seniority <= 3,
+    why: o => o.seniority <= 3
+      ? `${bare(o.name)} is in the First Presidency. The other three are in the Quorum of the Twelve.`
+      : `${bare(o.name)} is in the Quorum of the Twelve. The other three are in the First Presidency.` },
+  { id: 'abroad', label: 'Born outside the US', test: l => !/United States$/.test(l.birthplace),
+    why: o => !/United States$/.test(o.birthplace)
+      ? `${bare(o.name)} was born outside the United States, in ${placeName(o.birthplace)}. The other three were born in the US.`
+      : `${bare(o.name)} was born in the United States. The other three were born in other countries.` },
+  { id: 'utah', label: 'Born in Utah', test: l => /Utah/.test(l.birthplace),
+    why: o => /Utah/.test(o.birthplace)
+      ? `${bare(o.name)} was born in Utah (${placeName(o.birthplace)}). The other three weren’t.`
+      : `${bare(o.name)} was born outside Utah, in ${placeName(o.birthplace)}. The other three were born in Utah.` }
+];
+
+/* Four leaders where `group` singles out exactly one — and no other grouping
+   singles out someone else, so there's only one right answer. */
+function oddSet(group) {
+  const all = GC().leaders, inG = all.filter(group.test), outG = all.filter(l => !group.test(l));
+  const oddUnder = (g, four) => {
+    const yes = four.filter(g.test);
+    return yes.length === 1 ? yes[0] : yes.length === 3 ? four.find(l => !g.test(l)) : null;
+  };
+  for (let tries = 0; tries < 200; tries++) {
+    const flip = Math.random() < 0.5;
+    const [many, one] = flip ? [outG, inG] : [inG, outG];
+    if (many.length < 3 || !one.length) continue;
+    const odd = pick(one), four = shuffle([odd, ...shuffle(many).slice(0, 3)]);
+    if (ODD_GROUPS.every(g => g === group || [null, odd].includes(oddUnder(g, four)))) return { four, odd, group };
+  }
+  return null;
+}
+
+/* A world map that zooms in on the birthplace and drops a pin. The zoom is
+   a CSS transform on the map's contents (scale, then shift so the pin lands
+   near the centre), clamped so the frame never shows past the map's edge. */
+function worldMap(l) {
+  const [lat, lon] = l.birthCoords, x = lon + 180, y = 90 - lat;
+  const k = 3.2;                                            // zoom factor
+  const vx = Math.max(0, Math.min(360 - 360 / k, x - 180 / k));
+  const vy = Math.max(0, Math.min(150 - 150 / k, y - 75 / k));
+  const pin = `<g transform="translate(${x} ${y}) scale(.6)"><g class="map-pin">` +
+    `<path d="M0 0 C-1.6 -2.6 -3.2 -4.2 -3.2 -6.2 A3.2 3.2 0 0 1 3.2 -6.2 C3.2 -4.2 1.6 -2.6 0 0Z"/>` +
+    `<circle cx="0" cy="-6.2" r="1.25" class="map-pin-dot"/></g></g>`;
+  return `<div class="map-card"><svg class="world" viewBox="0 0 360 150" aria-hidden="true">
+    <g class="map-zoom" style="--zoom-to: scale(${k}) translate(${(-vx).toFixed(2)}px, ${(-vy).toFixed(2)}px)">
+      <path class="map-land" d="${GC().world.d}" vector-effect="non-scaling-stroke"/>${pin}</g></svg>
+    <span class="map-label">${esc(placeName(l.birthplace))}</span></div>`;
+}
+
 const GC_ROUNDS = [
   {
     id: 'gc-photo', kind: 'gc', name: 'Who is this?', icon: '📸', color: '#7cc4ff',
@@ -516,6 +581,85 @@ const GC_ROUNDS = [
         pts: 2, timer: 20
       };
     }
+  },
+  {
+    id: 'gc-truths', kind: 'gc', name: 'Two truths and a lie', icon: '🤥', color: '#FFB3C7',
+    items: () => GC().leaders.filter(l => l.birthplace && l.formerCareer && l.funFact),
+    about: aboutLeader,
+    build: l => {
+      // Three true facts from his official bio; one gets swapped for another
+      // leader's real fact of the same kind — never anything invented, and
+      // never a "lie" that happens to be true of him too.
+      const facts = {
+        born:   x => `He was born in ${placeName(x.birthplace)}.`,
+        career: x => `Before full-time Church service, he was ${aOrAn(x.formerCareer)}.`,
+        fun:    x => x.funFact
+      };
+      const others = GC().leaders.filter(o => o.id !== l.id && o.birthplace && o.formerCareer && o.funFact);
+      const fair = {
+        born:   o => o.birthCity !== l.birthCity,
+        career: o => !careersOverlap(o.formerCareer, l.formerCareer),
+        fun:    o => o.funFactCanBeLie !== false &&
+                     !sharedPlace(o.funFact, l.funFact) && !sharedPlace(o.funFact, l.birthplace) &&
+                     // "served a mission in Sweden" is only a safe lie about a man whose
+                     // own (different) mission is on record — otherwise it might be true
+                     (!/mission/i.test(o.funFact) || /mission/i.test(l.funFact))
+      };
+      const kind = pick(Object.keys(facts).filter(k => others.some(fair[k])));
+      const donor = pick(others.filter(fair[kind]));
+      const order = shuffle(Object.keys(facts));
+      const lines = order.map(k => k === kind ? facts[k](donor) : facts[k](l));
+      const lie = order.indexOf(kind);
+      const who = `<div class="truths-who">${portrait(l.id, 'portrait-md')}<p class="q-mid">${esc(bare(l.name))}</p></div>`;
+      const opts = shown => `<div class="opts">${lines.map((t, i) => {
+        const cls = !shown ? '' : i === lie ? ' is-lie' : ' is-right';
+        const tag = !shown ? '' : `<span class="opt-tag">${i === lie ? 'LIE' : 'TRUE'}</span>`;
+        return `<div class="opt${cls}"><span class="opt-letter">${'ABC'[i]}</span><span>${esc(t)}</span>${tag}</div>`;
+      }).join('')}</div>`;
+      return {
+        kicker: 'Two of these are true. Which one is the lie?',
+        stages: [
+          who + opts(false),
+          who + opts(true) + `<p class="q-sub"><b>Actually:</b> ${esc(facts[kind](l))}</p>`
+        ],
+        pts: 2, timer: 30
+      };
+    }
+  },
+  {
+    id: 'gc-odd', kind: 'gc', name: 'Odd one out', icon: '🧩', color: '#9BE7FF',
+    items: () => GC().leaders.length >= 6 ? ODD_GROUPS.map((g, i) => i) : [],
+    about: i => ({ key: 'odd:' + ODD_GROUPS[i].id, label: 'Odd one out: ' + ODD_GROUPS[i].label }),
+    build: i => {
+      const set = oddSet(ODD_GROUPS[i]);
+      if (!set) return null;
+      const { four, odd, group } = set;
+      const card = (l, hit) => `<div class="odd-card${hit ? ' is-odd' : ''}">${portrait(l.id, 'portrait-md')}` +
+        `<p class="odd-name">${esc(bare(l.name))}</p></div>`;
+      return {
+        kicker: 'One of these doesn’t belong. Which one — and why?',
+        stages: [
+          `<div class="odd-row">${four.map(l => card(l, false)).join('')}</div>`,
+          `<div class="odd-row">${four.map(l => card(l, l === odd)).join('')}</div>` +
+          `<p class="q-mid">${esc(group.why(odd))}</p>`
+        ],
+        pts: 2, timer: 25
+      };
+    }
+  },
+  {
+    id: 'gc-map', kind: 'gc', name: 'Where in the world?', icon: '🗺️', color: '#7FD6C1',
+    // Only leaders whose birth city no other leader shares, or the pin
+    // would have two right answers.
+    items: () => GC().world ? GC().leaders.filter(l => l.birthCoords &&
+      GC().leaders.filter(o => o.birthCity === l.birthCity).length === 1) : [],
+    about: aboutLeader,
+    build: l => whoIs(l, {
+      kicker: 'This apostle was born here. Who is he?',
+      prompt: worldMap(l),
+      pts: 2, timer: 30,
+      answer: leaderCard(l, `<p class="q-sub">Born in ${esc(placeName(l.birthplace))}, ${l.birthYear}</p>`)
+    })
   },
   {
     id: 'gc-lineup', kind: 'gc', name: 'Line up the Twelve', icon: '🔢', color: '#7fd6c1',
@@ -1273,15 +1417,17 @@ function buildDeck() {
     if (j > -1) [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 
-  S.deck = deck.map((s, i) => ({
-    round: s.round,
-    item: s.item,
-    passage: s.round.kind === 'dm' ? s.item : null,
-    ...about(s),
-    built: s.round.build(s.item, pool),
-    double: S.opts.shuffle && i > 0 && Math.random() < 0.12,
-    awards: []
-  }));
+  S.deck = deck.map(s => ({ ...s, built: s.round.build(s.item, pool) }))
+    .filter(s => s.built)                       // a round that couldn't build a fair slide sits out
+    .map((s, i) => ({
+      round: s.round,
+      item: s.item,
+      passage: s.round.kind === 'dm' ? s.item : null,
+      ...about(s),
+      built: s.built,
+      double: S.opts.shuffle && i > 0 && Math.random() < 0.12,
+      awards: []
+    }));
   // guarantee the last slide is a big one
   if (S.deck.length > 3) S.deck[S.deck.length - 1].double = true;
 }
@@ -1726,12 +1872,14 @@ const getJSON = (url, fallback) => fetch(url).then(r => r.ok ? r.json() : fallba
 /* data/ is committed; media/ is downloaded locally by tools/fetch-media.mjs
    and never committed, so it may be missing — the photo and voice rounds
    then just drop out. */
+let worldLand = null;
 async function loadConference() {
   const [lead, conf, media] = await Promise.all([
     getJSON('data/leaders.json', { leaders: [] }),
     getJSON('data/conference.json', { talks: [] }),
     getJSON('media/index.json', { portraits: {}, clips: {} }),
-    getJSON('data/envelopes.json', {}).then(e => { envelopes = e; })
+    getJSON('data/envelopes.json', {}).then(e => { envelopes = e; }),
+    getJSON('data/world-land.json', null).then(w => { worldLand = w; })
   ]);
   const leaders = (lead.leaders || []).slice().sort((a, b) => a.seniority - b.seniority);
   const byName = Object.fromEntries(leaders.map(l => [bare(l.name), l.id]));
@@ -1741,6 +1889,7 @@ async function loadConference() {
     leaders, talks,
     templeQuiz: conf.templeQuiz || null,
     music: conf.music || null,
+    world: worldLand,
     media: { portraits: media.portraits || {}, clips: media.clips || {} }
   };
 }

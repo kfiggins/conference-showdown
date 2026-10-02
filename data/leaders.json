@@ -15,7 +15,12 @@
       "funFact": "He was called to the Quorum of the Twelve Apostles on the same day as President Russell M. Nelson in 1984.",
       "funFactSource": "https://newsroom.churchofjesuschrist.org/article/president-russell-m-nelson-memorial",
       "bioUrl": "https://www.churchofjesuschrist.org/learn/dallin-h-oaks",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/db96515429b848527e30220394ba6299c297236a/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/db96515429b848527e30220394ba6299c297236a/full/700,/0/default",
+      "birthCity": "Provo",
+      "birthCoords": [
+        40.234,
+        -111.659
+      ]
     },
     {
       "id": "eyring",
@@ -32,7 +37,12 @@
       "funFact": "His first college degree was in physics, from the University of Utah.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/henry-b-eyring",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/cd25ccb9b3b1878fdbf9570f65b850d8267c5320/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/cd25ccb9b3b1878fdbf9570f65b850d8267c5320/full/700,/0/default",
+      "birthCity": "Princeton",
+      "birthCoords": [
+        40.357,
+        -74.667
+      ]
     },
     {
       "id": "christofferson",
@@ -48,7 +58,12 @@
       "funFact": "He served as a U.S. Army Reserve officer from 1971 to 1979, reaching the rank of captain, and served a mission in Argentina as a young man.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/d-todd-christofferson",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/343asphe55ztqiquq0xxbhu11a9hxdx1tvo3fr1p/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/343asphe55ztqiquq0xxbhu11a9hxdx1tvo3fr1p/full/700,/0/default",
+      "birthCity": "American Fork",
+      "birthCoords": [
+        40.377,
+        -111.796
+      ]
     },
     {
       "id": "uchtdorf",
@@ -65,7 +80,12 @@
       "funFact": "As a boy, his family had to flee their home twice — near the end of World War II and again in 1952 — before settling in Frankfurt, Germany.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/dieter-f-uchtdorf",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/9knz0ov0r0gsjcscpyqqre30l5zr52uuajqrjuzs/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/9knz0ov0r0gsjcscpyqqre30l5zr52uuajqrjuzs/full/700,/0/default",
+      "birthCity": "Ostrava",
+      "birthCoords": [
+        49.82,
+        18.262
+      ]
     },
     {
       "id": "bednar",
@@ -82,7 +102,12 @@
       "funFact": "He served a full-time mission in Southern Germany.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/david-a-bednar",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/3a69c12e9af5233d88cac0fe4e2a143d928650da/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/3a69c12e9af5233d88cac0fe4e2a143d928650da/full/700,/0/default",
+      "birthCity": "Oakland",
+      "birthCoords": [
+        37.804,
+        -122.271
+      ]
     },
     {
       "id": "cook",
@@ -98,7 +123,12 @@
       "funFact": "He served a full-time mission in the British Mission.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/quentin-l-cook",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/647633e40fd7d23059b1f4f96a8c76705764a95a/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/647633e40fd7d23059b1f4f96a8c76705764a95a/full/700,/0/default",
+      "birthCity": "Logan",
+      "birthCoords": [
+        41.737,
+        -111.834
+      ]
     },
     {
       "id": "andersen",
@@ -114,7 +144,12 @@
       "funFact": "He grew up on a farm outside Pocatello, Idaho, and speaks French, Portuguese, and Spanish in addition to English.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/neil-l-andersen",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/d76e5b4ae23211eeaefceeeeac1e8cdef9e9eedc/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/d76e5b4ae23211eeaefceeeeac1e8cdef9e9eedc/full/700,/0/default",
+      "birthCity": "Logan",
+      "birthCoords": [
+        41.737,
+        -111.834
+      ]
     },
     {
       "id": "rasband",
@@ -130,7 +165,12 @@
       "funFact": "He served a mission in the Eastern States Mission and was once a missionary tour guide on Temple Square.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/ronald-a-rasband",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/c922f38499accfa2b7b23ceaf749bab21292ab0f/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/c922f38499accfa2b7b23ceaf749bab21292ab0f/full/700,/0/default",
+      "birthCity": "Salt Lake City",
+      "birthCoords": [
+        40.761,
+        -111.891
+      ]
     },
     {
       "id": "stevenson",
@@ -146,7 +186,12 @@
       "funFact": "He served a mission in Japan (Fukuoka) and later returned as president of the Japan Nagoya Mission; he was raised in Cache Valley, Utah.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/gary-e-stevenson",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/defa8bc07385ded9be2ad159452c807a09e1a1d2/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/defa8bc07385ded9be2ad159452c807a09e1a1d2/full/700,/0/default",
+      "birthCity": "Ogden",
+      "birthCoords": [
+        41.223,
+        -111.974
+      ]
     },
     {
       "id": "renlund",
@@ -162,7 +207,12 @@
       "funFact": "He served a full-time mission in Sweden.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/dale-g-renlund",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/fcdabf2c159411eca865eeeeac1e3df9a6ee0244/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/fcdabf2c159411eca865eeeeac1e3df9a6ee0244/full/700,/0/default",
+      "birthCity": "Salt Lake City",
+      "birthCoords": [
+        40.761,
+        -111.891
+      ]
     },
     {
       "id": "gong",
@@ -178,7 +228,14 @@
       "funFact": "Among his many Church callings, he once served as a seminary teacher.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/gerrit-w-gong",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/3d9f5f445fa6bc9eb6a2d7495a335539baa940e1/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/3d9f5f445fa6bc9eb6a2d7495a335539baa940e1/full/700,/0/default",
+      "birthCity": "Redwood City",
+      "birthCoords": [
+        37.485,
+        -122.236
+      ],
+      "funFactCanBeLie": false,
+      "funFactCanBeLieNote": "Other leaders may also have served as seminary teachers, so this can't be used as a lie about anyone else."
     },
     {
       "id": "soares",
@@ -194,7 +251,12 @@
       "funFact": "He served a mission in Brazil (Rio de Janeiro) and later was president of the Portugal Porto Mission.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/ulisses-soares",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/f28b995aa6a45c898f714de5ba6c6da8bf161559/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/f28b995aa6a45c898f714de5ba6c6da8bf161559/full/700,/0/default",
+      "birthCity": "São Paulo",
+      "birthCoords": [
+        -23.55,
+        -46.633
+      ]
     },
     {
       "id": "kearon",
@@ -211,7 +273,12 @@
       "funFact": "He joined the Church as an adult, on Christmas Eve 1987.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/patrick-kearon",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/kk1gp83qrx1xb276uete6rb8npvrvapwmw6tu2o1/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/kk1gp83qrx1xb276uete6rb8npvrvapwmw6tu2o1/full/700,/0/default",
+      "birthCity": "Carlisle",
+      "birthCoords": [
+        54.892,
+        -2.932
+      ]
     },
     {
       "id": "causse",
@@ -228,7 +295,12 @@
       "funFact": "He is an accomplished pianist and has helped record several piano albums.",
       "funFactSource": null,
       "bioUrl": "https://www.churchofjesuschrist.org/learn/gerald-j-causse",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/bz51syf44ljkmfxif9a0uvrilnkg9uzc05g8uzgk/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/bz51syf44ljkmfxif9a0uvrilnkg9uzc05g8uzgk/full/700,/0/default",
+      "birthCity": "Bordeaux",
+      "birthCoords": [
+        44.838,
+        -0.579
+      ]
     },
     {
       "id": "gilbert",
@@ -245,7 +317,12 @@
       "funFact": "He spent most of his childhood in Phoenix, Arizona, served a mission in Japan (Kobe), and he and his wife have eight children.",
       "funFactSource": "https://newsroom.churchofjesuschrist.org/article/clark-gilbert-called-quorum-of-the-twelve-apostles",
       "bioUrl": "https://www.churchofjesuschrist.org/learn/clark-g-gilbert",
-      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/golg8duomm1gztjnzcb30vg7q3yi9wi72t7qf29t/full/700,/0/default"
+      "portraitUrl": "https://www.churchofjesuschrist.org/imgs/golg8duomm1gztjnzcb30vg7q3yi9wi72t7qf29t/full/700,/0/default",
+      "birthCity": "Oakland",
+      "birthCoords": [
+        37.804,
+        -122.271
+      ]
     }
   ],
   "notes": "Recent changes (verified on Church Newsroom / churchofjesuschrist.org):\n- President Russell M. Nelson died September 27, 2025, age 101 (newsroom.churchofjesuschrist.org/article/president-russell-m-nelson-memorial).\n- Dallin H. Oaks set apart as 18th President of the Church October 14, 2025, with Henry B. Eyring (First Counselor) and D. Todd Christofferson (Second Counselor); Jeffrey R. Holland became President of the Quorum of the Twelve (newsroom.churchofjesuschrist.org/article/president-oaks-new-first-presidency).\n- Gerald (official spelling: Gérald) Caussé, then Presiding Bishop, called and ordained an Apostle November 6, 2025 (newsroom.churchofjesuschrist.org/article/gerald-causse-called-quorum-of-the-twelve-apostles).\n- President Jeffrey R. Holland died December 27, 2025, age 85 (newsroom.churchofjesuschrist.org/article/president-jeffrey-r-holland-memorial).\n- Dieter F. Uchtdorf set apart as ACTING President of the Quorum of the Twelve January 8, 2026; Henry B. Eyring is the President of the Quorum but serves in the First Presidency (newsroom.churchofjesuschrist.org/article/dieter-f--uchtdorf--new-acting-president-of-the-quorum-of-the-twelve-apostles).\n- Clark G. Gilbert, Commissioner of Church Education, called February 11 and ordained February 12, 2026 (newsroom.churchofjesuschrist.org/article/clark-gilbert-called-quorum-of-the-twelve-apostles).\n- April 4, 2026 solemn assembly sustained Eyring as President and Uchtdorf as Acting President of the Twelve, and listed the Twelve in the order used here (churchofjesuschrist.org/study/general-conference/2026/04/12christofferson).\n- No further apostolic deaths or calls found in Newsroom through its Sept 30, 2026 RSS feed; October 2026 general conference is just starting, so recheck after it.\nData notes: birthYear/birthplace come from the 'Born' field on each churchofjesuschrist.org/learn bio. Uchtdorf's page header says 'Ostrava, Czech Republic'; the text says Czechoslovakia (the country's name in 1940). Most fun facts come from the bioUrl page; a few come from the funFactSource Newsroom article. formerCareer phrases are short kid-friendly summaries of the bio wording. The portrait URLs are the IIIF images from each bio page's official-portrait <img>, at 700px wide (all returned 200 image/jpeg, about 700x840). Christofferson's and Caussé's are 2025 portraits; Gilbert's was taken in 2026 'as a General Authority'."
